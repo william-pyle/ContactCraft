@@ -1,0 +1,36 @@
+[workspace]
+members = [".", "store"]
+
+[package]
+name = "contactcraft"
+version = "1.0.0"
+edition = "2024"
+description = "ContactCraft: your contacts on Windows, shared with every Craft app, in the MailCraft style"
+repository = "https://github.com/william-pyle/ContactCraft"
+license = "MIT"
+publish = false
+build = "build.rs"
+
+[[bin]]
+name = "ContactCraft"
+path = "src/main.rs"
+
+[dependencies]
+contactcraft-store = { path = "store" }
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "wgpu", "accesskit", "clipboard"] }
+egui = "0.37"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
+rfd = "0.17"
+ureq = { version = "3", features = ["json"] }
+
+[build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 4
+strip = true

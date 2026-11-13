@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get ContactCraft for Windows</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
+<meta name="description" content="ContactCraft: your contacts on Windows, with a picture and a theme for each person, shared with every Craft app.">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,500%7CGoogle+Sans:400,500&display=swap">
+<style>
+  :root {
+    --text: #1f1f1f;
+    --dim: #444746;
+    --primary: #0b57d0;
+    --on-primary: #ffffff;
+    --page: #f0f4f9;
+    --card: #ffffff;
+    --outline: #747775;
+    --menu: #e9eef6;
+    --selected: #d3e3fd;
+    --font: "Google Sans", roboto, "Noto Sans Myanmar UI", "Noto Sans Khmer", arial, sans-serif;
+    --body: roboto, "Google Sans", arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: hidden; }
+  body { background: var(--card); color: var(--text); font: 400 14px/20px var(--body); -webkit-font-smoothing: antialiased; }
+  a { color: var(--primary); }
+  button { font: inherit; color: inherit; }
+
+  /* Phone first: no card, the page itself is white, footer at the bottom. */
+  .wrap { min-height: 100vh; display: flex; flex-direction: column; }
+  .card { flex: 1; padding: 24px 24px 0; }
+  .mark { display: block; width: 48px; height: 48px; }
+  .columns { display: flex; flex-direction: column; margin-top: 24px; }
+  h1 { margin: 0; font: 400 32px/40px var(--font); color: var(--text); }
+  .lead { margin: 16px 0 0; font: 400 16px/24px var(--font); color: var(--text); }
+  .right { margin-top: 32px; }
+  .field { position: relative; margin-top: 8px; height: 56px; border: 1px solid var(--outline); border-radius: 4px; display: flex; align-items: center; padding: 0 15px; font: 400 16px/24px var(--body); color: var(--dim); }
+  .field b { font-weight: 400; color: var(--text); }
+  .linkish { display: inline-block; margin-top: 10px; padding: 0; border: 0; background: none; cursor: pointer; font: 500 14px/18px var(--font); color: var(--primary); text-decoration: none; letter-spacing: .1px; }
+  .note { margin: 45px 0 0; font: 400 14px/20px var(--body); color: var(--dim); }
+  .note a { font: 500 14px/20px var(--font); text-decoration: none; }
+  .actions { margin-top: 38px; display: flex; justify-content: space-between; align-items: center; position: relative; }
+  .text-btn { height: 40px; padding: 0 16px; margin-left: -16px; border: 0; border-radius: 20px; background: none; cursor: pointer; font: 500 14px/20px var(--font); color: var(--primary); letter-spacing: .1px; }
+  .text-btn:hover, .text-btn[aria-expanded="true"] { background: #dfe7f5; }
+  .pill { height: 40px; padding: 0 24px; border: 0; border-radius: 20px; background: var(--primary); color: var(--on-primary); cursor: pointer; font: 500 14px/20px var(--font); letter-spacing: .1px; text-decoration: none; display: inline-flex; align-items: center; }
+  .pill:hover { background: #0a4fbd; box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15); }
+  .menu { position: absolute; z-index: 10; min-width: 191px; margin: 0; padding: 6px 0; list-style: none; background: var(--menu); border-radius: 12px; box-shadow: 0 2px 6px 2px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.3); }
+  .menu[hidden] { display: none; }
+  .menu a, .menu button { display: flex; align-items: center; width: 100%; height: 48px; padding: 0 16px; border: 0; background: none; text-align: left; white-space: nowrap; cursor: pointer; text-decoration: none; font: 500 14px/20px var(--font); color: var(--text); }
+  .menu a:hover, .menu button:hover, .menu [aria-selected="true"] { background: rgba(31,31,31,.08); }
+  #more-menu { left: 0; top: 44px; }
+
+  footer { padding: 8px 0; display: flex; flex-direction: column; font: 400 12px/16px var(--body); position: relative; }
+  .lang { height: 32px; display: inline-flex; align-items: center; gap: 0; border: 0; background: none; cursor: pointer; padding: 0; margin-left: 0; font: 400 12px/16px var(--body); color: var(--text); margin: 0 24px; }
+  .lang-wrap { align-self: flex-start; padding-top: 7px; }
+  .lang svg { margin-left: 18px; width: 10px; height: 5px; transition: transform .1s; }
+  .lang[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .links { display: flex; margin: 0 0 -7px 8px; padding: 0; list-style: none; }
+  .links a { display: flex; align-items: center; height: 48px; padding: 0 16px; color: var(--text); text-decoration: none; font: 400 12px/16px var(--body); border-radius: 4px; }
+  .links a:hover { background: rgba(31,31,31,.08); }
+  #lang-menu { position: fixed; left: 8px; top: 32px; width: 185px; overflow-y: auto; border-radius: 4px; background: #fff; padding: 8px 0; }
+  #lang-menu button { font: 400 12px/16px var(--body); height: 48px; }
+  #lang-menu [aria-selected="true"] { background: var(--selected); }
+
+  /* Tablet and up: the white card on the soft blue page, centred with its footer. */
+  @media (min-width: 600px) {
+    body { background: var(--page); }
+    .wrap { justify-content: center; align-items: center; padding: 24px 0; }
+    .card { flex: none; width: 480px; background: var(--card); border-radius: 28px; padding: 28px 24px 24px; }
+    .columns { margin-top: 20px; }
+    .actions { margin-top: 79px; }
+    footer { width: 480px; padding: 8px 0; min-height: 64px; flex-direction: row; justify-content: space-between; align-items: center; }
+    .lang { margin: 0 0 0 16px; }
+    .lang-wrap { align-self: center; height: 48px; display: flex; align-items: center; padding-top: 0; }
+    .links { margin: 0; }
+  }
+  /* Wide: two columns, the heading on the left and the download on the right. */
+  @media (min-width: 840px) {
+    .card { width: 840px; padding: 36px; }
+    footer { width: 840px; }
+    .columns { flex-direction: row; justify-content: space-between; margin-top: 24px; min-height: 258px; }
+    .left, .right { width: 360px; }
+    .right { margin-top: 0; }
+    h1 { font-size: 36px; line-height: 44px; }
+    .note { margin-top: 46px; }
+    .actions { margin-top: 40px; justify-content: flex-end; gap: 24px; }
+    .text-btn { margin-left: 0; }
+  }
+  @media (min-width: 1240px) {
+    .card { width: 1040px; }
+    footer { width: 1040px; }
+    .left, .right { width: 460px; }
+    .lang-wrap { height: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <svg class="mark" viewBox="0 0 64 64" role="img" aria-label="ContactCraft">
+      <rect x="2" y="2" width="60" height="60" rx="14" fill="#0f68f0"/>
+      <rect x="11" y="16" width="42" height="32" rx="6" fill="#fff"/>
+      <circle cx="22.5" cy="26.5" r="5.5" fill="#0f68f0"/>
+      <path d="M14 42a8.5 8.5 0 0 1 17 0v4H14z" fill="#0f68f0"/>
+      <rect x="34" y="24" width="14" height="3.5" rx="1.5" fill="#0f68f0"/>
+      <rect x="34" y="31" width="10" height="3.5" rx="1.5" fill="#0f68f0"/>
+      <rect x="34" y="38" width="12" height="3.5" rx="1.5" fill="#0f68f0"/>
+    </svg>
+    <main class="columns">
+      <div class="left">
+        <h1 id="headingText">Get ContactCraft</h1>
+        <p class="lead">Your contacts on Windows</p>
+      </div>
+      <section class="right" aria-label="Download">
+        <div class="field" role="note"><b>ContactCraft for Windows 10 and 11</b></div>
+        <a class="linkish" href="help.html#whats-in-it">What's in it?</a>
+        <p class="note">Every detail and a theme for each person, shared with Craft apps. <a href="https://github.com/william-pyle/ContactCraft/blob/main/docs/shared-contacts.md">Learn how sharing works</a></p>
+        <div class="actions">
+          <button class="text-btn" type="button" id="more" aria-haspopup="menu" aria-expanded="false" aria-controls="more-menu">More downloads</button>
+          <ul class="menu" id="more-menu" role="menu" hidden>
+            <li role="none"><a role="menuitem" href="https://github.com/william-pyle/ContactCraft/releases/latest/download/ContactCraft-windows.zip">Portable (zip)</a></li>
+            <li role="none"><a role="menuitem" href="https://github.com/william-pyle/ContactCraft/blob/main/docs/shared-contacts.md">Guide for Craft apps</a></li>
+            <li role="none"><a role="menuitem" href="https://github.com/william-pyle/ContactCraft/releases">All releases</a></li>
+          </ul>
+          <a class="pill" href="https://github.com/william-pyle/ContactCraft/releases/latest/download/ContactCraft-windows-x64.msi">Download</a>
+        </div>
+      </section>
+    </main>
+  </div>
+  <footer>
+    <div class="lang-wrap">
+    <button class="lang" type="button" id="lang" aria-haspopup="listbox" aria-expanded="false" aria-controls="lang-menu">
+      <span id="lang-label">English (United States)</span>
+      <svg viewBox="0 0 10 5" aria-hidden="true"><path d="M0 0l5 5 5-5z" fill="#1f1f1f"/></svg>
+    </button>
+    <div class="menu" id="lang-menu" role="listbox" aria-label="Language" hidden></div>
+    </div>
+    <ul class="links">
+      <li><a href="help.html">Help</a></li>
+      <li><a href="help.html#privacy">Privacy</a></li>
+      <li><a href="help.html#terms">Terms</a></li>
+    </ul>
+  </footer>
+</div>
+<script>
+  // The page is in English; the list only remembers the choice for when translations arrive.
+  const languages = ["Afrikaans", "azərbaycan", "bosanski", "català", "Čeština", "Cymraeg", "Dansk", "Deutsch", "eesti",
+    "English (United Kingdom)", "English (United States)", "Español (España)", "Español (Latinoamérica)", "euskara",
+    "Filipino", "Français (Canada)", "Français (France)", "Gaeilge", "galego", "Hrvatski", "Indonesia", "isiZulu",
+    "íslenska", "Italiano", "Kiswahili", "latviešu", "lietuvių", "magyar", "Melayu", "Nederlands", "norsk", "o‘zbek",
+    "polski", "Português (Brasil)", "Português (Portugal)", "română", "shqip", "Slovenčina", "slovenščina", "srpski",
+    "Suomi", "Svenska", "Tiếng Việt", "Türkçe", "Ελληνικά", "български", "русский", "українська", "日本語", "한국어", "中文（简体）"];
+  const langBtn = document.getElementById("lang"), langMenu = document.getElementById("lang-menu"), langLabel = document.getElementById("lang-label");
+  const moreBtn = document.getElementById("more"), moreMenu = document.getElementById("more-menu");
+  for (const name of languages) {
+    const b = document.createElement("button");
+    b.type = "button"; b.role = "option"; b.textContent = name;
+    b.setAttribute("aria-selected", String(name === langLabel.textContent));
+    b.addEventListener("click", () => {
+      langLabel.textContent = name;
+      for (const o of langMenu.children) o.setAttribute("aria-selected", String(o === b));
+      close();
+    });
+    langMenu.appendChild(b);
+  }
+  function close() {
+    for (const [btn, menu] of [[langBtn, langMenu], [moreBtn, moreMenu]]) { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+  }
+  function toggle(btn, menu) {
+    const open = menu.hidden;
+    close();
+    if (open) {
+      menu.hidden = false; btn.setAttribute("aria-expanded", "true");
+      if (menu === moreMenu) { menu.style.left = btn.offsetLeft + "px"; menu.style.top = (btn.offsetTop + btn.offsetHeight + 4) + "px"; }
+      if (menu === langMenu) {
+        // The list opens above its button, from the top of the window down to the button.
+        const r = btn.getBoundingClientRect();
+        menu.style.left = Math.max(0, r.left - 16) + "px";
+        menu.style.top = "32px";
+        menu.style.maxHeight = Math.max(120, r.top - 33) + "px";
+        menu.scrollTop = 0;
+      }
+    }
+  }
+  langBtn.addEventListener("click", e => { e.stopPropagation(); toggle(langBtn, langMenu); });
+  moreBtn.addEventListener("click", e => { e.stopPropagation(); toggle(moreBtn, moreMenu); });
+  document.addEventListener("click", e => { if (!langMenu.contains(e.target) && !moreMenu.contains(e.target)) close(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+</script>
+</body>
+</html>
