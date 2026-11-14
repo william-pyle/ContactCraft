@@ -25,7 +25,7 @@ For a ready-made brief to give an AI coding agent working on MessageCraft (or Ma
 
 ```toml
 # Cargo.toml of MessageCraft or MailCraft
-contactcraft-store = { git = "https://github.com/william-pyle/ContactCraft", tag = "v1.0.0" }
+contactcraft-store = { git = "https://github.com/william-pyle/ContactCraft", tag = "v1.1.0" }
 # or, with ContactCraft checked out next to your app:
 # contactcraft-store = { path = "../ContactCraft/store" }
 ```

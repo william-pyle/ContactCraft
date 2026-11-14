@@ -29,7 +29,7 @@ contacts.
 In MessageCraft's `Cargo.toml` under `[dependencies]`:
 
 ```toml
-contactcraft-store = { git = "https://github.com/william-pyle/ContactCraft", tag = "v1.0.0" }
+contactcraft-store = { git = "https://github.com/william-pyle/ContactCraft", tag = "v1.1.0" }
 ```
 
 (Use the newest release tag from https://github.com/william-pyle/ContactCraft/releases. If the

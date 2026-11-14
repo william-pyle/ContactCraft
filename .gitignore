@@ -3,3 +3,15 @@
 /node_modules
 *.log
 /.tools
+
+# Craft Anything's own project records (this folder is also a Craft Anything project)
+/capture
+/checks
+/reference
+/inbox
+/pinned
+/investigation.cany
+/craft.json
+/feed.json
+/usage.json
+/agent-session.jsonl

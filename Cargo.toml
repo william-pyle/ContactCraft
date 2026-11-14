@@ -3,7 +3,7 @@ members = [".", "store"]
 
 [package]
 name = "contactcraft"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2024"
 description = "ContactCraft: your contacts on Windows, shared with every Craft app, in the MailCraft style"
 repository = "https://github.com/william-pyle/ContactCraft"

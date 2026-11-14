@@ -1,6 +1,6 @@
 [package]
 name = "contactcraft-store"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2024"
 description = "ContactCraft's shared contact store: open, read and change ContactCraft's contacts from any Craft app, whether ContactCraft is running or not."
 license = "MIT"
