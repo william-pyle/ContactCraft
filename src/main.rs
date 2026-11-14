@@ -8,6 +8,7 @@ mod card;
 mod chrome;
 mod cleanup_ui;
 mod demo;
+mod dialog;
 mod editor;
 mod icons;
 mod io;
@@ -54,6 +55,33 @@ fn app_icon() -> egui::IconData {
 }
 
 fn main() -> eframe::Result {
+    let args: Vec<String> = std::env::args().collect();
+    // Started by another app to create or edit one contact: a small window that stays on top.
+    if let Some(req) = dialog::parse(&args) {
+        let options = eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_title(dialog::title(&req))
+                .with_app_id("ContactCraft.Dialog")
+                .with_inner_size([900.0, 880.0])
+                .with_min_inner_size([620.0, 480.0])
+                .with_always_on_top()
+                .with_minimize_button(false)
+                .with_drag_and_drop(true)
+                .with_icon(app_icon()),
+            centered: true,
+            ..Default::default()
+        };
+        let result = eframe::run_native("ContactCraft", options, Box::new(move |cc| {
+            let mut app = app::App::new(cc);
+            app.start_dialog(req);
+            Ok(Box::new(app))
+        }));
+        if let Err(e) = result {
+            eprintln!("error {e}");
+            std::process::exit(2);
+        }
+        std::process::exit(dialog::EXIT_CODE.load(std::sync::atomic::Ordering::SeqCst));
+    }
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("ContactCraft")

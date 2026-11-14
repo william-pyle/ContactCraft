@@ -106,8 +106,10 @@ The crate also has `contactcraft_store::cleanup` (`format_phone`, `proper_case`,
    - Sounds: `theme.text_tone` (a sound name or a file path) for their messages.
 6. **The People view.** Point `people_list` and `people_card` at ContactCraft's contacts instead
    of MailCraft's. Show at least name, picture, phones, emails and notes. Offer **Text** (the
-   existing `text_number`), **Edit** and **New contact**, plus **Open in ContactCraft** (start
-   `ContactCraft.exe` if installed; it shows the same contact).
+   existing `text_number`), **Edit** and **New contact**. For Edit and New contact, start
+   ContactCraft's own editor window (see "Let ContactCraft do the editing" below) rather than
+   writing a new editor; the "add this number" button in a conversation can use
+   `--edit-phone <number>`.
 7. **Changing and adding contacts.** Always start from the full contact: `store.get(&id)`, change
    the fields you edit, then `store.save(&mut c)`. Never build a fresh `Contact` for an existing
    person: that would wipe the fields MessageCraft doesn't show. New contacts:
@@ -120,6 +122,35 @@ The crate also has `contactcraft_store::cleanup` (`format_phone`, `proper_case`,
    such as `c.extra.insert("messagecraftLastTexted".into(), json!(timestamp))`. ContactCraft
    keeps it and shows it under "From other apps".
 
+## Let ContactCraft do the editing (recommended)
+
+Instead of building a full contact editor in MessageCraft, start ContactCraft's own editor. It
+opens as a small window that stays on top, showing only the editor, and closes when the person
+saves or cancels:
+
+```rust
+use std::process::Command;
+let store = contactcraft_store::Store::open_default()?;
+if let Some(exe) = store.contactcraft_exe() {
+    // Add the number from a conversation, or edit the contact that has it:
+    let out = Command::new(&exe).args(["--edit-phone", &number]).output();   // run off the UI thread
+    // New contact with details filled in:
+    // Command::new(&exe).args(["--new-contact", "--name", "Sam Lee", "--phone", &number])
+    // Edit a known contact:      .args(["--edit-contact", &contact.id])
+    // Open on the theme editor:  add "--theme-tab"
+    if let Ok(out) = out {
+        match out.status.code() {
+            Some(0) => { /* saved: stdout is "saved <id>"; reload or wait for revision() to move */ }
+            Some(1) => { /* cancelled */ }
+            _ => { /* not found or failed: stdout is "error <message>" */ }
+        }
+    }
+}
+```
+
+Run it on a worker thread (it waits until the window closes). If `contactcraft_exe()` returns
+`None`, ContactCraft isn't installed: hide the button, or fall back to MessageCraft's own editor.
+`--result-file <path>` writes the same outcome as JSON when reading standard output is awkward.
 ## Don'ts
 
 - Don't open `contacts.db` with raw SQL or copy it; use the crate.

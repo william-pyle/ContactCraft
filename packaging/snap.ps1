@@ -24,7 +24,7 @@ public static class W {
 }
 "@
 [W]::SetProcessDPIAware() | Out-Null
-$args2 = @('--demo') + $Rest
+$args2 = (@('--demo') + $Rest | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }) -join ' '
 $p = Start-Process -FilePath $Exe -ArgumentList $args2 -PassThru
 try {
     $h = [IntPtr]::Zero

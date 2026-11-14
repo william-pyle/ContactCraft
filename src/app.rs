@@ -114,6 +114,8 @@ pub struct App {
     pub cleanup_dialog: Option<crate::cleanup_ui::CleanupDialog>,
     pub merge: Option<crate::cleanup_ui::MergeSession>,
     pub updater: crate::update::Updater,
+    /// Started by another app for one contact (see dialog.rs).
+    pub dialog: Option<crate::dialog::DialogState>,
     pub textures: HashMap<String, Option<TextureHandle>>,
     /// Font files registered with egui (usable from the frame after they're added).
     fonts_ready: HashSet<String>,
@@ -180,6 +182,7 @@ impl App {
             cleanup_dialog: None,
             merge: None,
             updater: crate::update::Updater::default(),
+            dialog: None,
             textures: HashMap::new(),
             fonts_ready: HashSet::new(),
             fonts_wanted: HashSet::new(),
@@ -211,7 +214,14 @@ impl App {
             app.backstage = Some(Backstage::Sharing);
         }
         app.apply_settings(&cc.egui_ctx);
-        if !demo && app.settings.check_updates && !args.iter().any(|a| a == "--no-update-check") {
+        let dialog_mode = crate::dialog::parse(&args).is_some();
+        // Let other Craft apps find this program through the store.
+        if !demo {
+            if let (Some(store), Ok(exe)) = (&app.store, std::env::current_exe()) {
+                let _ = store.set_meta("contactcraft.exe", Some(&exe.display().to_string()));
+            }
+        }
+        if !demo && !dialog_mode && app.settings.check_updates && !args.iter().any(|a| a == "--no-update-check") {
             app.check_for_updates(&cc.egui_ctx, false);
         }
         app
@@ -519,6 +529,15 @@ impl App {
             )
         });
         let typing = ctx.memory(|m| m.focused().is_some());
+        if self.dialog.is_some() {
+            if save {
+                self.save_pane();
+            }
+            if esc && self.confirm_discard.is_none() {
+                self.set_pane(Pane::Card);
+            }
+            return;
+        }
         if new {
             self.new_contact();
         }
@@ -577,6 +596,9 @@ impl App {
         let new = c.id.is_empty() || self.contact(&c.id).is_none();
         let name = c.display_name();
         if self.save_contact(c) {
+            if let Some(d) = self.dialog.as_mut() {
+                d.last_saved = self.selected.clone();
+            }
             self.pane = Pane::Card;
             self.notify(if new { format!("Added {name}.") } else { format!("Saved {name}.") }, false);
         }
@@ -626,7 +648,14 @@ impl App {
 
     fn window_title(&mut self, ctx: &egui::Context) {
         let mut title = "ContactCraft".to_string();
-        if let Some(c) = self.selected_contact() {
+        if let Some(d) = &self.dialog {
+            title = crate::dialog::title(&d.request).to_string();
+            if let Pane::Edit(c) | Pane::Theme(c) = &self.pane {
+                if !c.id.is_empty() && !c.display_name().is_empty() {
+                    title = format!("Edit {} - ContactCraft", c.display_name());
+                }
+            }
+        } else if let Some(c) = self.selected_contact() {
             title = format!("{} - ContactCraft", c.display_name());
         }
         if self.demo {
@@ -673,6 +702,13 @@ impl eframe::App for App {
     }
 
     fn on_exit(&mut self) {
+        // The dialog window closed with its X: that's a cancel.
+        if let Some(d) = self.dialog.as_ref().filter(|d| !d.finished) {
+            match d.error.clone() {
+                Some(e) => self.write_result("error", None, Some(e)),
+                None => self.write_result("cancelled", None, None),
+            }
+        }
         self.save_settings();
         if self.demo {
             if let Some(s) = self.store.take() {

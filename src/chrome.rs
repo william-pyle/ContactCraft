@@ -17,6 +17,13 @@ const RAIL_W: f32 = 48.0;
 
 impl App {
     pub fn draw(&mut self, ui: &mut Ui) {
+        if self.in_dialog() {
+            self.draw_dialog(ui);
+            let ctx = ui.ctx().clone();
+            self.dialogs(&ctx);
+            self.notice_overlay(&ctx);
+            return;
+        }
         let t = self.t;
         Panel::top("title_bar").exact_size(TITLE_BAR).frame(Frame::new().fill(t.title_bar)).show(ui, |ui| self.title_bar(ui));
         Panel::bottom("status_bar").exact_size(STATUS_BAR_H).frame(Frame::new().fill(t.status_bar)).show(ui, |ui| self.status_bar(ui));

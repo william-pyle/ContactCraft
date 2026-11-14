@@ -291,6 +291,21 @@ impl Store {
         }
     }
 
+    /// Where ContactCraft.exe is, so another app can start it to create or edit a contact
+    /// (`--new-contact`, `--edit-contact <id>`, `--edit-phone <number>`...). ContactCraft
+    /// records its own location each time it starts; the standard install folder is tried too.
+    pub fn contactcraft_exe(&self) -> Option<PathBuf> {
+        if let Some(p) = self.meta("contactcraft.exe").map(PathBuf::from).filter(|p| p.is_file()) {
+            return Some(p);
+        }
+        ["ProgramFiles", "ProgramW6432", "LOCALAPPDATA"]
+            .iter()
+            .filter_map(std::env::var_os)
+            .map(PathBuf::from)
+            .flat_map(|b| [b.join("ContactCraft").join("ContactCraft.exe"), b.join("Programs").join("ContactCraft").join("ContactCraft.exe")])
+            .find(|p| p.is_file())
+    }
+
     // --- photos ------------------------------------------------------------------------------
 
     /// The full path of a contact's picture, when it has one.

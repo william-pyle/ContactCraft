@@ -24,6 +24,7 @@ directly, whether ContactCraft is running or not.
 - [Clean Up and duplicates](#clean-up-and-duplicates)
 - [Exporting](#exporting)
 - [Sharing with Craft apps](#sharing-with-craft-apps)
+- [Command line for other apps](#command-line-for-other-apps)
 - [Updates](#updates)
 - [Where your data is kept](#where-your-data-is-kept)
 - [Keyboard](#keyboard)
@@ -214,6 +215,37 @@ every app.
   brief to give an AI coding agent so it connects MessageCraft (or MailCraft) to ContactCraft's
   contacts: finding, showing, changing and adding them, and using their pictures and themes.
 
+## Command line for other apps
+
+Other apps can ask ContactCraft to create or edit one contact. ContactCraft then opens a small
+window that stays on top of other windows and shows only the editor. **Save** stores the contact
+and closes the window; **Cancel** or closing the window closes it without saving.
+
+```text
+ContactCraft.exe --new-contact [--name "Anna Smith"] [--given Anna] [--family Smith]
+                 [--phone "+1 555 010 2030"] [--email anna@example.com] [--company Northwind]
+                 [--label Friends] [--notes "Met at the conference"]
+ContactCraft.exe --edit-contact <id>
+ContactCraft.exe --edit-phone "<number>"     edits the contact with that number (any format),
+                                             or starts a new one with it filled in
+ContactCraft.exe --edit-email <address>      the same, by email address
+Add to any of them:
+  --result-file "<path>"   write the outcome as JSON
+  --theme-tab              open on the theme editor instead of the details
+```
+
+How the calling app learns what happened:
+
+| | Saved | Cancelled or closed | Not found / failed |
+| --- | --- | --- | --- |
+| Exit code | `0` | `1` | `2` |
+| Standard output | `saved <id>` | `cancelled` | `error <message>` |
+| `--result-file` | `{"status": "saved", "id": "...", "displayName": "..."}` | `{"status": "cancelled"}` | `{"status": "error", "message": "..."}` |
+
+To find `ContactCraft.exe`, use `Store::contactcraft_exe()` in the `contactcraft-store` crate.
+ContactCraft records its own location in the shared store each time it starts, and the standard
+install folder (`C:\Program Files\ContactCraft`) is tried too. A running ContactCraft window
+shows the change within a couple of seconds.
 ## Updates
 
 When ContactCraft starts, it asks GitHub for the latest release of this repository. If it's newer
@@ -269,6 +301,7 @@ spacing (one line per contact), sort by last name, and the update check.
 | `--edit` / `--theme` | (demo) open the first contact in the editor or theme editor |
 | `--cleanup` / `--cleanup-run` | (demo) open Clean Up, or run it straight away |
 | `--no-update-check` | Don't check for a new version this time |
+| `--new-contact`, `--edit-contact`, `--edit-phone`, `--edit-email` | Open only the editor for one contact (see [Command line for other apps](#command-line-for-other-apps)) |
 
 ## Building from source
 
@@ -339,6 +372,7 @@ app/
 │   ├── io.rs                import and export
 │   ├── backstage.rs         the File view
 │   ├── update.rs            the update check, download and install
+│   ├── dialog.rs            the one-contact editor window other apps open
 │   └── theme.rs, icons.rs, widgets.rs   the Craft look
 ├── store/                   contactcraft-store: the shared contact library
 │   ├── src/model.rs         the contact (every field) and its theme

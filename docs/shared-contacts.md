@@ -94,6 +94,14 @@ them.
 
 An empty colour always means "use the app's own".
 
+## Asking ContactCraft to edit a contact
+
+Any app can start `ContactCraft.exe --new-contact`, `--edit-contact <id>`, `--edit-phone <number>`
+or `--edit-email <address>` to show only ContactCraft's editor, in a window that stays on top.
+It returns exit code 0 (saved, with `saved <id>` on standard output), 1 (cancelled) or 2 (error),
+and `--result-file <path>` writes the outcome as JSON. `Store::contactcraft_exe()` finds the
+program. See the README's "Command line for other apps".
+
 ## From other languages: the database
 
 `contacts.db` has two tables.
