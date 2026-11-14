@@ -40,6 +40,6 @@ around with sample contacts first, run `ContactCraft.exe --demo`.
 ContactCraft isn't code-signed yet, so Windows SmartScreen may warn the first time you run the
 installer. Choose **More info › Run anyway**.
 
-### Not yet
+### Privacy
 
-Syncing with Google Contacts directly isn't in this version; import Google's export file instead.
+ContactCraft never connects to Google (or any contacts service): your contacts stay on your computer. To bring contacts over from another service, export them there as a vCard or CSV file and import that file.

@@ -20,7 +20,8 @@
 //! ```
 //!
 //! Changes made through the store show in ContactCraft at once (it watches
-//! [`Store::revision`]), and ContactCraft sends them to Google Contacts at its next sync.
+//! [`Store::revision`]). ContactCraft never connects to Google: contacts come in and go out only
+//! through files (vCard, CSV, JSON).
 //! See `docs/shared-contacts.md` for the database layout, for programs not written in Rust.
 
 pub mod cleanup;

@@ -116,9 +116,9 @@ CREATE TABLE contacts (
   favorite INTEGER,
   photo TEXT,                   -- file name in photos\
   theme_accent TEXT,
-  google_resource TEXT,         -- reserved for Google sync
-  dirty INTEGER,                -- changed since the last sync
-  deleted INTEGER,              -- 1: deleted, kept until sync tells Google (skip these rows)
+  google_resource TEXT,         -- unused (kept so older files still open)
+  dirty INTEGER,                -- unused by ContactCraft (kept for compatibility)
+  deleted INTEGER,              -- 1: deleted (skip these rows)
   rev INTEGER,                  -- the revision of its last change
   created TEXT, updated TEXT,   -- RFC 3339, UTC
   data TEXT                     -- the whole contact as JSON (camelCase keys, see model.rs)
