@@ -84,10 +84,10 @@ impl App {
         let p = ui.painter().clone();
         p.line_segment([pos2(rect.min.x, rect.max.y - 0.5), pos2(rect.max.x, rect.max.y - 0.5)], Stroke::new(1.0, t.border.linear_multiply(0.6)));
 
-        // App mark: the family's blue tile, with a contact card.
+        // App mark: the family's blue tile, with a person outline.
         let mark = Rect::from_min_size(pos2(rect.min.x + 12.0, rect.center().y - 12.0), Vec2::splat(24.0));
         p.rect_filled(mark, 6.0, t.accent);
-        icons::paint(&p, mark.shrink(3.5), Icon::Card, Color32::WHITE, Color32::WHITE);
+        icons::paint(&p, mark.shrink(3.5), Icon::Person, Color32::WHITE, Color32::WHITE);
 
         // Quick access: new contact and import.
         let mut qat = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_min_size(pos2(mark.max.x + 10.0, rect.center().y - 14.0), vec2(80.0, 28.0))).layout(egui::Layout::left_to_right(egui::Align::Center)));
