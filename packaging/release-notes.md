@@ -12,7 +12,7 @@ Contacts and groups on Windows, with pictures and themes shared with other appli
   colour and pattern choices.
 - **Delete confirmation.** Pressing Enter now confirms the contact deletion dialog.
 - **Theme editor wording.** The editor uses “App Default” and no longer names other applications.
-- **Updated icon.** The blue tile now has a solid white person silhouette.
+- **Updated icon.** The blue tile now has a white person outline.
 - **Group navigation for other applications.** `--open-group <id>` opens an existing group in the
   full app. `--new-group --group-name <name> [--group-number <number> ...]` creates and opens one.
 
