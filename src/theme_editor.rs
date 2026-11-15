@@ -49,7 +49,7 @@ impl App {
         let mut u = ui.new_child(egui::UiBuilder::new().max_rect(controls_rect).layout(egui::Layout::top_down(egui::Align::Min)));
         let ui = &mut u;
         ui.label(egui::RichText::new(format!("Theme for {}", if c.display_name().is_empty() { "this contact".to_string() } else { c.display_name() })).font(theme::semibold(19.0)).color(t.text));
-        ui.label(egui::RichText::new("MessageCraft and MailCraft show this person with these colours, this font and this background.").font(theme::regular(12.0)).color(t.text_dim));
+        ui.label(egui::RichText::new("Choose how this contact looks.").font(theme::regular(12.0)).color(t.text_dim));
         ui.add_space(8.0);
         let mut save = false;
         let mut cancel = false;
@@ -73,6 +73,7 @@ impl App {
         ui.add_space(8.0);
 
         let mut pick_background = false;
+        let mut pick_banner = false;
         let mut pick_font = false;
         let mut pick_sound: Option<u8> = None;
         ScrollArea::vertical().auto_shrink([false, false]).id_salt(("theme_editor", c.id.clone())).show(ui, |ui| {
@@ -86,6 +87,7 @@ impl App {
                         th.accent = a.to_string();
                         th.accent2 = b.to_string();
                         th.style = style.to_string();
+                        th.banner_image.clear();
                         th.background = bg.to_string();
                         th.text_color.clear();
                         th.text.clear();
@@ -104,6 +106,15 @@ impl App {
                 combo(ui, "style", &mut th.style, labels::THEME_STYLE, 150.0);
             });
             color_row(ui, &t, "Banner text", &mut th.text, "White or black, whichever reads");
+            ui.horizontal(|ui| {
+                lbl(ui, &t, "Banner picture");
+                if widgets::secondary_button(ui, &t, if th.banner_image.is_empty() { "Choose a picture…" } else { "Change…" }).clicked() {
+                    pick_banner = true;
+                }
+                if !th.banner_image.is_empty() && widgets::secondary_button(ui, &t, "Remove").clicked() {
+                    th.banner_image.clear();
+                }
+            });
 
             heading(ui, &t, "Picture");
             ui.horizontal(|ui| {
@@ -123,9 +134,9 @@ impl App {
             heading(ui, &t, "Text");
             ui.horizontal(|ui| {
                 lbl(ui, &t, "Font");
-                let shown = if th.font.is_empty() { "The app's font".to_string() } else { th.font.clone() };
+                let shown = if th.font.is_empty() { "App Default".to_string() } else { th.font.clone() };
                 egui::ComboBox::from_id_salt("font").width(220.0).height(360.0).selected_text(shown).show_ui(ui, |ui| {
-                    if ui.selectable_label(th.font.is_empty(), "The app's font").clicked() {
+                    if ui.selectable_label(th.font.is_empty(), "App Default").clicked() {
                         th.font.clear();
                         th.font_file.clear();
                     }
@@ -144,7 +155,7 @@ impl App {
             ui.horizontal(|ui| {
                 lbl(ui, &t, "Size");
                 let mut auto = th.text_size < 8.0;
-                if ui.checkbox(&mut auto, "App's size").changed() {
+                if ui.checkbox(&mut auto, "App Default").changed() {
                     th.text_size = if auto { 0.0 } else { 14.0 };
                 }
                 if !auto {
@@ -157,10 +168,10 @@ impl App {
                 ui.checkbox(&mut th.italic, egui::RichText::new("Italic").italics());
             });
             color_row(ui, &t, "Text colour", &mut th.text_color, "Readable on the background");
-            color_row(ui, &t, "Link colour", &mut th.link_color, "The app's blue");
+            color_row(ui, &t, "Link colour", &mut th.link_color, "App Default");
 
             heading(ui, &t, "Background");
-            color_row(ui, &t, "Colour", &mut th.background, "The app's own");
+            color_row(ui, &t, "Colour", &mut th.background, "App Default");
             ui.horizontal(|ui| {
                 lbl(ui, &t, "Picture");
                 ui.spacing_mut().item_spacing.x = 8.0;
@@ -189,15 +200,15 @@ impl App {
                 });
             }
 
-            heading(ui, &t, "Messages (MessageCraft)");
-            color_row(ui, &t, "Their messages", &mut th.bubble_in, "The app's grey");
+            heading(ui, &t, "Messages");
+            color_row(ui, &t, "Their messages", &mut th.bubble_in, "App Default");
             color_row(ui, &t, "Their text", &mut th.bubble_in_text, "Readable on it");
-            color_row(ui, &t, "Your messages", &mut th.bubble_out, "The app's blue");
+            color_row(ui, &t, "Your messages", &mut th.bubble_out, "App Default");
             color_row(ui, &t, "Your text", &mut th.bubble_out_text, "Readable on it");
             ui.horizontal(|ui| {
                 lbl(ui, &t, "Roundness");
                 let mut auto = th.bubble_radius == 0;
-                if ui.checkbox(&mut auto, "App's own").changed() {
+                if ui.checkbox(&mut auto, "App Default").changed() {
                     th.bubble_radius = if auto { 0 } else { 14 };
                 }
                 if !auto {
@@ -214,6 +225,20 @@ impl App {
             ui.add_space(30.0);
         });
 
+        if pick_banner {
+            if let Some(path) = rfd::FileDialog::new().set_title("Choose a banner picture").add_filter("Pictures", &["png", "jpg", "jpeg", "gif", "webp"]).pick_file() {
+                match std::fs::read(&path) {
+                    Ok(bytes) => {
+                        if c.id.is_empty() { c.id = contactcraft_store::new_id(); }
+                        if let Some(store) = &self.store {
+                            if let Err(e) = store.set_banner(&mut c.theme, &c.id, &bytes) { self.notify(e, true); }
+                        }
+                        self.forget_textures();
+                    }
+                    Err(e) => self.notify(e.to_string(), true),
+                }
+            }
+        }
         if pick_background {
             if let Some(path) = rfd::FileDialog::new().set_title("Choose a background picture").add_filter("Pictures", &["png", "jpg", "jpeg", "gif", "webp"]).pick_file() {
                 match std::fs::read(&path) {
@@ -303,7 +328,7 @@ impl App {
             ui.painter().text(pos2(frame.max.x - 18.0, banner.min.y + 30.0), Align2::RIGHT_TOP, &c.theme.emoji, theme::regular(28.0), look.banner_ink);
         }
         if self.font_is_missing(c) {
-            ui.painter().text(pos2(frame.min.x + 18.0, frame.max.y - 14.0), Align2::LEFT_BOTTOM, "That font isn't on this computer: the app's font is shown.", theme::regular(11.5), t.red);
+            ui.painter().text(pos2(frame.min.x + 18.0, frame.max.y - 14.0), Align2::LEFT_BOTTOM, "That font isn't on this computer: App Default is shown.", theme::regular(11.5), t.red);
         }
 
         let body = Rect::from_min_max(pos2(frame.min.x + 22.0, banner.max.y + 46.0), pos2(frame.max.x - 22.0, frame.max.y - 30.0));
@@ -319,7 +344,7 @@ impl App {
             });
         }
         ui.add_space(10.0);
-        // A short conversation, as MessageCraft would show it.
+        // A short conversation preview.
         let bin = theme::hex(&c.theme.bubble_in).unwrap_or(t.bubble_in);
         let bout = theme::hex(&c.theme.bubble_out).unwrap_or(t.bubble_out);
         let tin = theme::hex(&c.theme.bubble_in_text).unwrap_or_else(|| theme::ink_on(bin));
@@ -393,7 +418,7 @@ fn color_row(ui: &mut Ui, t: &Tokens, label: &str, value: &mut String, auto_text
 fn sound_row(ui: &mut Ui, t: &Tokens, label: &str, value: &mut String, which: u8, pick: &mut Option<u8>) {
     ui.horizontal(|ui| {
         lbl(ui, t, label);
-        ui.add(egui::TextEdit::singleline(value).hint_text("The app's sound").desired_width(220.0).font(theme::regular(12.5)).margin(Margin::symmetric(8, 4)));
+        ui.add(egui::TextEdit::singleline(value).hint_text("App Default").desired_width(220.0).font(theme::regular(12.5)).margin(Margin::symmetric(8, 4)));
         if widgets::icon_button(ui, t, Icon::Import, 26.0, "Choose a sound file…").clicked() {
             *pick = Some(which);
         }

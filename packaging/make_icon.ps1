@@ -1,4 +1,4 @@
-# Draws ContactCraft's icon (the Craft family's blue tile with a white contact card) and writes
+# Draws ContactCraft's icon (the Craft family's blue tile with a solid white person) and writes
 # assets\contactcraft.ico (16, 24, 32, 48, 64, 128 and 256 px) and web\favicon.ico.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -18,15 +18,21 @@ function Draw([int]$n) {
         $p.CloseFigure(); return $p
     }
     $blue = [System.Drawing.Color]::FromArgb(255, 0x0F, 0x68, 0xF0)
-    $g.FillPath((New-Object System.Drawing.SolidBrush $blue), (RR (2*$k) (2*$k) (60*$k) (60*$k) (14*$k)))
+    $tile = RR (2*$k) (2*$k) (60*$k) (60*$k) (14*$k)
+    $blueBrush = New-Object System.Drawing.SolidBrush $blue
+    $g.FillPath($blueBrush, $tile)
+    $tile.Dispose()
+    $blueBrush.Dispose()
     $white = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::White)
-    $g.FillPath($white, (RR (11*$k) (16*$k) (42*$k) (32*$k) (6*$k)))
-    $b = New-Object System.Drawing.SolidBrush $blue
-    $g.FillEllipse($b, 17*$k, 21*$k, 11*$k, 11*$k)
-    $g.FillPie($b, 14*$k, 33*$k, 17*$k, 18*$k, 180, 180)
-    $g.FillPath($b, (RR (34*$k) (24*$k) (14*$k) (3.5*$k) (1.5*$k)))
-    $g.FillPath($b, (RR (34*$k) (31*$k) (10*$k) (3.5*$k) (1.5*$k)))
-    $g.FillPath($b, (RR (34*$k) (38*$k) (12*$k) (3.5*$k) (1.5*$k)))
+    $g.FillEllipse($white, 20*$k, 10*$k, 24*$k, 24*$k)
+    $body = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $body.AddBezier((12*$k), (52*$k), (15*$k), (41*$k), (22*$k), (36*$k), (32*$k), (36*$k))
+    $body.AddBezier((32*$k), (36*$k), (42*$k), (36*$k), (49*$k), (41*$k), (52*$k), (52*$k))
+    $body.AddLine((52*$k), (52*$k), (12*$k), (52*$k))
+    $body.CloseFigure()
+    $g.FillPath($white, $body)
+    $body.Dispose()
+    $white.Dispose()
     $g.Dispose()
     $ms = New-Object System.IO.MemoryStream
     $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png)

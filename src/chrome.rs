@@ -65,6 +65,10 @@ impl App {
     }
 
     fn right_pane(&mut self, ui: &mut Ui) {
+        if self.active_group.is_some() {
+            self.group_editor(ui);
+            return;
+        }
         match self.pane.clone() {
             Pane::Card => self.contact_card(ui),
             Pane::Edit(_) => self.contact_editor(ui),
@@ -151,6 +155,7 @@ impl App {
             Filter::Recent => "Changed this week".into(),
             Filter::Unlabeled => "No label".into(),
             Filter::Label(l) => l.clone(),
+            Filter::Group(id) => self.group(id).map(|g| g.name.clone()).unwrap_or_else(|| "Group".into()),
         }
     }
 
@@ -230,6 +235,9 @@ impl App {
                 }
                 if ribbon_button(ui, &t, Icon::Plus, "New Contact", false, self.store.is_some(), false).clicked() {
                     self.new_contact();
+                }
+                if ribbon_button(ui, &t, Icon::People, "New Group", false, self.store.is_some(), false).clicked() {
+                    self.new_group();
                 }
                 ribbon_rule(ui, &t);
                 if ribbon_button(ui, &t, Icon::Edit, "Edit", false, has, false).clicked() {
@@ -481,6 +489,24 @@ impl App {
                 self.confirm_delete = None;
             }
         }
+        if let Some(id) = self.confirm_group_delete.clone() {
+            let name = self.group(&id).map(|g| g.name.clone()).unwrap_or_default();
+            let mut go = false;
+            let mut close = false;
+            let modal = egui::Modal::new(egui::Id::unique("delete_group")).frame(dialog_frame(&t)).show(ctx, |ui| {
+                ui.set_width(390.0);
+                ui.label(egui::RichText::new(format!("Delete group {name}?")).font(theme::semibold(17.0)).color(t.text));
+                ui.label("Contacts and numbers in the group stay saved.");
+                ui.horizontal(|ui| {
+                    if widgets::primary_button(ui, &t, "Delete group", true).clicked() { go = true; }
+                    if widgets::secondary_button(ui, &t, "Cancel").clicked() { close = true; }
+                });
+            });
+            if go {
+                self.confirm_group_delete = None;
+                self.delete_group(&id);
+            } else if close || modal.should_close() { self.confirm_group_delete = None; }
+        }
         if let Some(next) = self.confirm_discard.clone() {
             let mut choice = 0;
             let modal = egui::Modal::new(egui::Id::unique("discard")).frame(dialog_frame(&t)).show(ctx, |ui| {
@@ -509,13 +535,19 @@ impl App {
                     self.save_pane();
                     if !self.editing() {
                         self.pane = next;
+                        self.finish_pending_group_navigation();
                     }
                 }
                 2 => {
                     self.confirm_discard = None;
                     self.pane = next;
+                    self.finish_pending_group_navigation();
                 }
-                3 => self.confirm_discard = None,
+                3 => {
+                    self.confirm_discard = None;
+                    self.pending_group = None;
+                    self.pending_new_group = false;
+                }
                 _ => {}
             }
         }

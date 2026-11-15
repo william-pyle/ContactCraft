@@ -78,12 +78,12 @@ impl App {
         let photos = self.contacts.iter().filter(|c| !c.photo.is_empty()).count();
         let themed = self.contacts.iter().filter(|c| !c.theme.is_default()).count();
         let labels = self.label_counts().len();
-        para(ui, &t, &format!("{n} contacts  ·  {photos} with a picture  ·  {themed} with a theme  ·  {labels} labels"));
+        para(ui, &t, &format!("{n} contacts  ·  {} groups  ·  {photos} with a picture  ·  {themed} with a theme  ·  {labels} labels", self.groups.len()));
         ui.add_space(6.0);
         if let Some(s) = &self.store {
             let dir = s.dir().to_path_buf();
             sub(ui, &t, "Where your contacts are kept");
-            para(ui, &t, &format!("{}\n\ncontacts.db holds the contacts; photos, backgrounds and fonts hold their pictures and theme files. Back up this folder to keep everything.", dir.display()));
+            para(ui, &t, &format!("{}\n\ncontacts.db holds contacts and groups; photos, backgrounds and fonts hold their pictures and theme files. Back up this folder to keep everything.", dir.display()));
             ui.horizontal(|ui| {
                 if widgets::secondary_button(ui, &t, "Open the folder").clicked() {
                     crate::app::open_path(&dir);
@@ -91,7 +91,7 @@ impl App {
                 if widgets::secondary_button(ui, &t, "Read again").on_hover_text("Reload every contact from the store").clicked() {
                     self.forget_textures();
                     self.reload();
-                    self.notify("Contacts read again.", false);
+                    self.notify("Contacts and groups read again.", false);
                 }
             });
         } else if let Some(e) = &self.store_error {
@@ -106,7 +106,7 @@ impl App {
     fn page_import(&mut self, ui: &mut Ui) {
         let t = self.t;
         title(ui, &t, "Import contacts");
-        para(ui, &t, "Bring contacts in from Google Contacts, Outlook, an iPhone or any program that saves vCard or CSV files. Every field they carry is kept; columns ContactCraft has no place for become your own fields.");
+        para(ui, &t, "Bring contacts in from Google Contacts, Outlook, an iPhone or any program that saves vCard or CSV files. ContactCraft JSON files also restore group records. Every field they carry is kept; columns ContactCraft has no place for become your own fields.");
         if widgets::primary_button(ui, &t, "Choose a file to import…", self.store.is_some()).clicked() {
             self.pick_import_file();
         }
@@ -136,14 +136,14 @@ impl App {
         let rows = [
             ("vcf", "vCard (.vcf)", "For Google Contacts, Outlook, iPhone and almost everything else. Keeps pictures, and every ContactCraft field and theme for another ContactCraft."),
             ("csv", "Google CSV (.csv)", "The spreadsheet file Google Contacts imports. No pictures or themes."),
-            ("json", "ContactCraft file (.json)", "Everything, exactly as ContactCraft keeps it (pictures stay in the data folder)."),
+            ("json", "ContactCraft file (.json)", "Contact and group records, including membership and theme settings. Picture and font files stay in the data folder; back up that folder to keep them. A filtered export omits groups."),
         ];
         for (kind, name, what) in rows {
             ui.add_space(6.0);
             sub(ui, &t, name);
             para(ui, &t, what);
             ui.horizontal(|ui| {
-                if widgets::primary_button(ui, &t, "Export all", !self.contacts.is_empty()).clicked() {
+                if widgets::primary_button(ui, &t, "Export all", !self.contacts.is_empty() || (kind == "json" && !self.groups.is_empty())).clicked() {
                     self.export(kind, false);
                 }
                 if widgets::secondary_button(ui, &t, "Export the contacts shown").clicked() {
@@ -246,7 +246,7 @@ impl App {
                 crate::app::open_url(crate::update::RELEASES_PAGE);
             }
         });
-        para(ui, &t, "Your contacts on Windows, with every detail Google Contacts, Outlook and vCard can hold, a picture and a theme for each person, shared with every Craft app.");
+        para(ui, &t, "Your contacts and groups on Windows, with detailed contact fields, pictures and themes shared with other applications.");
         para(ui, &t, "Its look follows MailCraft's design, as MessageCraft does. Inter typeface: SIL Open Font License 1.1.");
         para(ui, &t, "Keyboard: Ctrl+N new contact, Ctrl+F search, Ctrl+S save, Enter edit, Delete delete, ↑ ↓ move, Esc close.");
     }

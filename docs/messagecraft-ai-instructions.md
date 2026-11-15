@@ -10,9 +10,8 @@ replace "MessageCraft" with "MailCraft" and "conversation" with "email".
 
 MessageCraft must use **ContactCraft's contacts** directly: find them, show them, change them and
 add new ones, **whether ContactCraft is running or not**. Use each contact's name, picture and
-theme in conversations. This replaces (or comes before) the current MailCraft contacts link in
-`src/mailcraft.rs` and `src/people.rs`; keep that link as a fallback only if ContactCraft has no
-contacts.
+theme in conversations. Adapt the integration to the application's current People and conversation
+code; verify those paths before changing them.
 
 ## Where the contacts are
 
@@ -29,14 +28,11 @@ contacts.
 In MessageCraft's `Cargo.toml` under `[dependencies]`:
 
 ```toml
-contactcraft-store = { git = "https://github.com/william-pyle/ContactCraft", tag = "v1.1.0" }
+contactcraft-store = { git = "https://github.com/william-pyle/ContactCraft", tag = "v1.2.0" }
 ```
 
-(Use the newest release tag from https://github.com/william-pyle/ContactCraft/releases. If the
-ContactCraft source is checked out on this computer, `{ path = "<that folder>/store" }` works too.)
-
-```toml
-```
+Version 1.2.0 includes groups and banner pictures. A local checkout also works with
+`{ path = "<that folder>/store" }` in place of the Git dependency.
 
 It brings `rusqlite` with SQLite bundled (compiled with the MSVC C compiler MessageCraft already
 builds with), `serde`, `serde_json`, `chrono`, `base64`, `sha2` and `getrandom`. The crate's own
@@ -61,7 +57,12 @@ store.changes_since(rev)?                      // Vec<(Contact, deleted: bool)> 
 store.photo_path(&c)                           // Option<PathBuf> of the contact's picture
 store.set_photo(&mut c, &bytes)?               // store a picture (PNG/JPEG/GIF/WebP), then save(c)
 store.background_path(&c)                      // the theme's background picture, if any
+store.banner_path(&c.theme)                     // the theme's banner picture, if any
 store.font_path(&c)                            // the theme's font file, if any
+store.list_groups()?                            // groups of contacts and bare numbers
+store.get_group(&id)?                          // Option<ContactGroup>
+store.save_group(&mut group)?                   // add or update a group
+store.delete_group(&id)?                       // remove a group, leaving contacts intact
 ```
 
 Errors are `String`s (`Result<T, String>`).
@@ -76,8 +77,7 @@ The crate also has `contactcraft_store::cleanup` (`format_phone`, `proper_case`,
 ## How to build it into MessageCraft
 
 1. **Threading.** `Store` holds a `rusqlite::Connection`: it is `Send` but not `Sync`. Open it
-   in a worker thread and talk to it through channels, the way `src/mailcraft.rs` does with
-   `Link`, `Request` and `Reply`. Never block the egui frame on it. Calls are fast (milliseconds)
+   in a worker thread and talk to it through channels. Never block the egui frame on it. Calls are fast (milliseconds)
    but the window must never wait on the disk.
 2. **Load and keep current.** On start, load `store.list()` into memory and build a map from
    `phone_key` to contact id. Every 2 seconds, compare `store.revision()` with the revision you
@@ -102,7 +102,8 @@ The crate also has `contactcraft_store::cleanup` (`format_phone`, `proper_case`,
      points (0 = your own), `theme.bold`, `theme.italic`, `theme.text_color`,
      `theme.link_color`.
    - The conversation header can use `theme.accent` / `theme.accent2` and `theme.style`
-     (`solid`, `gradient`, `diagonal`, `stripes`, `dots`, `glow`), and `theme.emoji`.
+     (`solid`, `gradient`, `diagonal`, `stripes`, `dots`, `glow`), `theme.emoji` and the optional
+     picture at `store.banner_path(&theme)`.
    - Sounds: `theme.text_tone` (a sound name or a file path) for their messages.
 6. **The People view.** Point `people_list` and `people_card` at ContactCraft's contacts instead
    of MailCraft's. Show at least name, picture, phones, emails and notes. Offer **Text** (the
@@ -121,6 +122,11 @@ The crate also has `contactcraft_store::cleanup` (`format_phone`, `proper_case`,
    when you last texted them), put it in `c.extra` under a key starting with `messagecraft`,
    such as `c.extra.insert("messagecraftLastTexted".into(), json!(timestamp))`. ContactCraft
    keeps it and shows it under "From other apps".
+10. **Groups.** Load `store.list_groups()` when the revision changes. A `ContactGroup` has a
+    name, a `ContactTheme` and `members`: `GroupMember::Contact { id }` or
+    `GroupMember::Number { number }`. Show number-only members even when no saved contact matches.
+    Add or remove members through the group helpers and `store.save_group(&mut group)`; do not
+    write group JSON directly. Deleting a group leaves its contacts alone.
 
 ## Let ContactCraft do the editing (recommended)
 

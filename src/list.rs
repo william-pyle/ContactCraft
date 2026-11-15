@@ -62,9 +62,25 @@ impl App {
             if resp.clicked() {
                 self.new_label = Some(String::new());
             }
+            ui.add_space(10.0);
+            heading(ui, &t, "GROUPS");
+            let groups: Vec<(String, String, usize)> = self.groups.iter().map(|g| (g.id.clone(), g.name.clone(), g.members.len())).collect();
+            for (id, name, count) in groups {
+                if row(ui, &t, Icon::People, &name, count, self.filter == Filter::Group(id.clone()), false).clicked() {
+                    pick = Some(Filter::Group(id));
+                }
+            }
+            if ui.button("+ New group").clicked() {
+                self.new_group();
+            }
         });
         if let Some(f) = pick {
-            self.filter = f;
+            if let Filter::Group(id) = &f {
+                self.select_group(id);
+            } else {
+                self.active_group = None;
+                self.filter = f;
+            }
         }
     }
 
@@ -96,6 +112,8 @@ impl App {
             ui.vertical_centered(|ui| {
                 let msg = if !self.search.is_empty() {
                     "No contacts match your search."
+                } else if matches!(self.filter, Filter::Group(_)) {
+                    "No saved contacts in this group."
                 } else if self.contacts.is_empty() {
                     "No contacts yet."
                 } else {

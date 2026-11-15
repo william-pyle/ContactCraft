@@ -1,7 +1,7 @@
 # ContactCraft
 
-**Your contacts on Windows, with every detail, a picture and a theme for each person, shared with
-every Craft app.**
+**Your contacts and contact groups on Windows, with details, pictures and themes shared with
+other applications.**
 
 ContactCraft is a Windows contacts manager in the Craft family's style (the look of MailCraft and
 MessageCraft). It keeps everything Google Contacts, Outlook, Apple Contacts and vCard can hold
@@ -20,6 +20,7 @@ directly, whether ContactCraft is running or not.
 - [Getting started](#getting-started)
 - [Importing your contacts](#importing-your-contacts)
 - [Editing a contact](#editing-a-contact)
+- [Contact groups](#contact-groups)
 - [Themes](#themes)
 - [Clean Up and duplicates](#clean-up-and-duplicates)
 - [Exporting](#exporting)
@@ -61,10 +62,12 @@ directly, whether ContactCraft is running or not.
     under "From other apps", so nothing is ever lost.
 - **A picture** for each contact: choose one or drop it on the window. Shown round, rounded or
   square.
-- **A theme** for each contact, with a live preview: banner colours and pattern, emoji, font,
+- **A theme** for each contact, with a live preview: banner colours, pattern or picture, emoji, font,
   text size, bold or italic, text and link colours, a background colour or picture (fit,
   strength, soften), message bubble colours and roundness, and sounds. Eight ready-made looks to
   start from.
+- **Contact groups** with a name, a standard theme and any mix of saved contacts and phone
+  numbers. Other applications can add groups through the shared store.
 - **Import** from Google Contacts (vCard or Google CSV), Outlook (CSV), iPhone or Mac (vCard), or
   ContactCraft's own file. It can skip contacts you already have and label what came in.
 - **Export** to vCard, Google CSV or ContactCraft's own file.
@@ -103,8 +106,8 @@ Open **ContactCraft** from the Start menu.
 - **Import** brings in a file from Google Contacts or Outlook (see below).
 - Click a contact in the list to see its card. **Edit** changes its details; **Theme** changes
   how it looks.
-- The label pane on the left filters the list: all contacts, favourites, changed this week, with
-  a theme, without a label, or one label.
+- The left pane filters the list by favourites, recent changes, themes, labels or groups. Select a
+  group to manage its members and theme.
 - The search box at the top searches names, companies, emails, phone numbers (in any format),
   addresses, labels, relationships, your own fields and notes.
 
@@ -143,6 +146,18 @@ Outlook details, Your own fields, and Labels and notes. Every list grows with **
 entry has a label menu with the standard labels plus room for your own. **Save** (Ctrl+S) stores
 the contact; ContactCraft asks before throwing away unsaved changes.
 
+## Contact groups
+
+Click **New Group** on the Home ribbon or **New group** in the left pane. Give the group a name,
+then use **Add contact** or **Add number**. Remove a member with **Remove**; this does not delete
+the contact. A number-only member does not need a matching ContactCraft contact. Group changes are
+saved as you make them, and other applications can see them through the shared store. Deleting a
+contact keeps its phone numbers in its groups as number-only members.
+Labels imported with contacts remain labels; they do not automatically create group records.
+
+Groups use the same theme fields as contacts. Choose a preset or set banner colours, a pattern or
+picture, background, text, message colours and sounds. **App Default** restores the standard theme.
+
 ## Themes
 
 **Theme** opens the theme editor beside a live preview of the person's card and a short
@@ -150,7 +165,7 @@ conversation:
 
 | Part | What you can set |
 | --- | --- |
-| Banner | Main and second colour, pattern (gradient, solid, diagonal, stripes, dots, glow), banner text colour |
+| Banner | Main and second colour, pattern (gradient, solid, diagonal, stripes, dots, glow), optional picture, banner text colour |
 | Picture | Shape (circle, rounded, square), an emoji |
 | Text | Font (any Windows font, or a font file of your own), size, bold, italic, text colour, link colour |
 | Background | Colour, and/or a picture with fit (cover, contain, tile, centre, stretch), strength and soften |
@@ -158,8 +173,8 @@ conversation:
 | Sounds | A ringtone and a message sound |
 
 Start from one of the ready-made looks (Ocean, Sunset, Forest, Berry, Midnight, Slate, Gold,
-Plain), or **Reset theme** to go back to the plain look. Fonts and background pictures you add
-are copied into ContactCraft's data folder, so every Craft app can use them.
+Plain), or **Reset theme** to go back to the plain look. Fonts, banner pictures and
+background pictures you add are copied into ContactCraft's data folder, so every Craft app can use them.
 
 ## Clean Up and duplicates
 
@@ -200,14 +215,16 @@ contact back as it was. Contacts added since stay.
 - **vCard (.vcf)**: for Google Contacts, Outlook, iPhone and almost everything else. Keeps
   pictures, and carries every ContactCraft field and theme for another ContactCraft.
 - **Google CSV (.csv)**: the spreadsheet Google Contacts imports.
-- **ContactCraft file (.json)**: everything, exactly as ContactCraft keeps it.
+- **ContactCraft file (.json)**: contact and group records, including group membership and theme
+  settings. The file does not embed picture or font files; back up the data folder to keep those.
+  Exporting only the contacts currently shown omits groups.
 
 ## Sharing with Craft apps
 
 Your contacts live in one SQLite database in your Windows profile. Several programs can have it
 open at once, and nothing has to be running. A change one app makes shows in the others within a
-couple of seconds. Each contact carries its picture and theme, so a person looks the same in
-every app.
+couple of seconds. Contact groups live in the same store, with contacts and number-only members.
+Each contact carries its picture and theme, so a person looks the same in every app.
 
 - For developers: [docs/shared-contacts.md](docs/shared-contacts.md) describes the
   `contactcraft-store` Rust crate (in `store/`) and the database layout.
@@ -229,6 +246,9 @@ ContactCraft.exe --edit-contact <id>
 ContactCraft.exe --edit-phone "<number>"     edits the contact with that number (any format),
                                              or starts a new one with it filled in
 ContactCraft.exe --edit-email <address>      the same, by email address
+ContactCraft.exe --open-group <id>            open the full app on an existing group
+ContactCraft.exe --new-group --group-name "Weekend team"
+                 [--group-number "+1 555 010 2030" ...]
 Add to any of them:
   --result-file "<path>"   write the outcome as JSON
   --theme-tab              open on the theme editor instead of the details
@@ -268,9 +288,9 @@ variable names):
 
 | Path | What it is |
 | --- | --- |
-| `contacts.db` | The contacts (SQLite, shared with the other Craft apps) |
+| `contacts.db` | Contacts and groups (SQLite, shared with other applications) |
 | `photos\` | Contact pictures |
-| `backgrounds\` | Theme background pictures |
+| `backgrounds\` | Theme banner and background pictures |
 | `fonts\` | Font files themes use that aren't Windows' own |
 | `backups\` | A copy of every contact and picture from before each clean-up |
 | `contactcraft-ui.json` | ContactCraft's own window settings |
@@ -284,7 +304,7 @@ Back up this folder to keep everything. **File › Info › Open the folder** op
 | Ctrl+N | New contact |
 | Ctrl+F or Ctrl+E | Search |
 | Ctrl+S | Save the contact being edited |
-| Enter | Edit the selected contact |
+| Enter | Edit the selected contact; confirm a pending delete dialog |
 | Delete | Delete the selected contact (asks first) |
 | ↑ / ↓ | Move through the list |
 | Esc | Close the editor or the File view |
@@ -302,6 +322,7 @@ spacing (one line per contact), sort by last name, and the update check.
 | `--cleanup` / `--cleanup-run` | (demo) open Clean Up, or run it straight away |
 | `--no-update-check` | Don't check for a new version this time |
 | `--new-contact`, `--edit-contact`, `--edit-phone`, `--edit-email` | Open only the editor for one contact (see [Command line for other apps](#command-line-for-other-apps)) |
+| `--open-group <id>`, `--new-group --group-name <name> [--group-number <number> ...]` | Open the full app on a group; a new group is saved immediately so its theme and members can be edited |
 
 ## Building from source
 
@@ -339,13 +360,13 @@ in place.
 
 ## Making a release
 
-1. Change `version` in `Cargo.toml` (for example to `1.1.0`) and update
+1. Change `version` in `Cargo.toml` and `store/Cargo.toml` (for example to `1.3.0`) and update
    `packaging/release-notes.md`.
 2. Commit, then tag and push:
 
    ```powershell
-   git tag v1.1.0
-   git push origin main v1.1.0
+   git tag v1.3.0
+   git push origin main v1.3.0
    ```
 
 3. The **Build** workflow (`.github/workflows/build.yml`) builds and tests on Windows, makes the
@@ -360,14 +381,15 @@ artifact.
 ## Project layout
 
 ```
-app/
+ContactCraft/
 ├── src/                     the window (Rust, egui/eframe)
 │   ├── app.rs               state, settings, loading, pictures and fonts
 │   ├── chrome.rs            title bar, ribbon, rail, status bar, dialogs
 │   ├── list.rs              label pane and contact list
 │   ├── card.rs              the contact card and theme drawing
 │   ├── editor.rs            the full editor
-│   ├── theme_editor.rs      the theme editor and preview
+│   ├── theme_editor.rs      the contact theme editor and preview
+│   ├── groups.rs            group membership and theme editor
 │   ├── cleanup_ui.rs        Clean Up, the merge screen, backups and undo
 │   ├── io.rs                import and export
 │   ├── backstage.rs         the File view
@@ -375,15 +397,15 @@ app/
 │   ├── dialog.rs            the one-contact editor window other apps open
 │   └── theme.rs, icons.rs, widgets.rs   the Craft look
 ├── store/                   contactcraft-store: the shared contact library
-│   ├── src/model.rs         the contact (every field) and its theme
-│   ├── src/store.rs         the SQLite store, pictures, backgrounds and fonts
+│   ├── src/model.rs         contacts, groups and their themes
+│   ├── src/store.rs         the SQLite store, groups, pictures and theme files
 │   ├── src/vcard.rs         vCard in and out
 │   ├── src/csv.rs           Google CSV and Outlook CSV in, Google CSV out
 │   ├── src/cleanup.rs       clean-up rules, duplicates and merging
 │   └── tests/               store, import and clean-up tests
 ├── docs/                    the sharing guide and the MessageCraft AI brief
 ├── packaging/               the installer (WiX), icon script, release notes
-├── web/                     the download page
+├── web/                     download and help pages
 └── build.ps1                the build
 ```
 
@@ -393,7 +415,7 @@ app/
   **More info › Run anyway**.
 - **An import found no contacts.** Export from Google as *Google CSV* or *vCard*, or from Outlook
   as a *CSV* file. A file exported as *Outlook CSV* from Google also works.
-- **A theme font shows the app's font instead.** The font file isn't on this computer: add it
+- **A theme font shows App Default instead.** The font file isn't on this computer: add it
   with **Another font file…** in the theme editor, so it's copied into ContactCraft's data
   folder.
 - **The update check says it couldn't check.** The computer is offline, or GitHub couldn't be

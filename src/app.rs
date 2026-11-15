@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use contactcraft_store::{Contact, Store};
+use contactcraft_store::{Contact, ContactGroup, GroupMember, Store};
 use egui::{ColorImage, TextureHandle};
 use serde::{Deserialize, Serialize};
 
@@ -65,6 +65,7 @@ pub enum Filter {
     Recent,
     Unlabeled,
     Label(String),
+    Group(String),
 }
 
 /// What the right-hand pane shows.
@@ -85,6 +86,7 @@ pub struct Notice {
 pub struct ImportPreview {
     pub file: PathBuf,
     pub items: Vec<(Contact, Option<Vec<u8>>)>,
+    pub groups: Vec<ContactGroup>,
     pub skip_duplicates: bool,
     pub label: String,
 }
@@ -94,6 +96,12 @@ pub struct App {
     pub store: Option<Store>,
     pub store_error: Option<String>,
     pub contacts: Vec<Contact>,
+    pub groups: Vec<ContactGroup>,
+    pub active_group: Option<String>,
+    pub group_name: String,
+    pub group_number: String,
+    pub pending_group: Option<String>,
+    pub pending_new_group: bool,
     pub revision: i64,
     last_poll: Instant,
     pub selected: Option<String>,
@@ -103,6 +111,7 @@ pub struct App {
     /// Editor sections the person closed.
     pub closed_sections: HashSet<&'static str>,
     pub confirm_delete: Option<String>,
+    pub confirm_group_delete: Option<String>,
     pub confirm_discard: Option<Pane>,
     pub ribbon: RibbonTab,
     pub backstage: Option<Backstage>,
@@ -163,6 +172,12 @@ impl App {
             store,
             store_error,
             contacts: Vec::new(),
+            groups: Vec::new(),
+            active_group: None,
+            group_name: String::new(),
+            group_number: String::new(),
+            pending_group: None,
+            pending_new_group: false,
             revision: -1,
             last_poll: Instant::now(),
             selected: None,
@@ -171,6 +186,7 @@ impl App {
             pane: Pane::Card,
             closed_sections: HashSet::new(),
             confirm_delete: None,
+            confirm_group_delete: None,
             confirm_discard: None,
             ribbon: RibbonTab::Home,
             backstage: None,
@@ -196,6 +212,20 @@ impl App {
         }
         app.reload();
         app.selected = app.contacts.first().map(|c| c.id.clone());
+        if let Some(id) = args.windows(2).find(|w| w[0] == "--open-group").map(|w| w[1].clone()) {
+            if app.group(&id).is_some() { app.select_group(&id); }
+            else { app.notify("That contact group no longer exists.", true); }
+        } else if args.iter().any(|arg| arg == "--new-group") {
+            let name = args.windows(2).find(|w| w[0] == "--group-name").map(|w| w[1].clone()).unwrap_or_else(|| "New group".into());
+            let mut group = ContactGroup::new(name);
+            for pair in args.windows(2).filter(|w| w[0] == "--group-number") { group.add_number(pair[1].clone()); }
+            if let Some(store) = &app.store {
+                match store.save_group(&mut group) {
+                    Ok(()) => { app.reload(); app.select_group(&group.id); }
+                    Err(e) => app.notify(format!("Couldn't create the group: {e}"), true),
+                }
+            }
+        }
         // Open straight onto a page (handy for the demo and for screenshots).
         if let Some(c) = app.selected_contact() {
             if args.iter().any(|a| a == "--edit") {
@@ -246,10 +276,13 @@ impl App {
         self.notice = Some(Notice { text: text.into(), error, until: Instant::now() + Duration::from_secs(if error { 9 } else { 4 }) });
     }
 
-    /// Read every contact from the store again.
+    /// Read contacts and groups from the store again.
     pub fn reload(&mut self) {
         let Some(store) = &self.store else { return };
-        match store.list() {
+        let revision = store.revision();
+        let contacts = store.list();
+        let groups = store.list_groups();
+        match contacts {
             Ok(mut list) => {
                 if self.settings.sort_by_family {
                     list.sort_by_key(|c| {
@@ -258,9 +291,17 @@ impl App {
                     });
                 }
                 self.contacts = list;
-                self.revision = store.revision();
+                self.revision = revision;
             }
             Err(e) => self.notify(format!("Couldn't read the contacts: {e}"), true),
+        }
+        match groups {
+            Ok(groups) => self.groups = groups,
+            Err(e) => self.notify(format!("Couldn't read the groups: {e}"), true),
+        }
+        if self.active_group.as_ref().is_some_and(|id| self.group(id).is_none()) {
+            self.active_group = None;
+            self.filter = Filter::All;
         }
         if let Some(id) = &self.selected {
             if !self.contacts.iter().any(|c| &c.id == id) {
@@ -269,7 +310,7 @@ impl App {
         }
     }
 
-    /// Pick up changes other Craft apps made to the store.
+    /// Pick up contact and group changes other applications made to the store.
     fn poll_store(&mut self) {
         if self.last_poll.elapsed() < Duration::from_millis(1500) {
             return;
@@ -289,6 +330,74 @@ impl App {
         self.selected.as_deref().and_then(|id| self.contact(id)).cloned()
     }
 
+    pub fn group(&self, id: &str) -> Option<&ContactGroup> {
+        self.groups.iter().find(|g| g.id == id)
+    }
+
+    pub fn new_group(&mut self) {
+        if self.unsaved() {
+            self.pending_new_group = true;
+            self.pending_group = None;
+            self.confirm_discard = Some(Pane::Card);
+            return;
+        }
+        let Some(store) = &self.store else { return };
+        let mut group = ContactGroup::new("New group");
+        match store.save_group(&mut group) {
+            Ok(()) => {
+                let id = group.id.clone();
+                self.reload();
+                self.select_group(&id);
+            }
+            Err(e) => self.notify(format!("Couldn't create group: {e}"), true),
+        }
+    }
+
+    pub fn select_group(&mut self, id: &str) {
+        if self.unsaved() {
+            self.pending_group = Some(id.to_string());
+            self.pending_new_group = false;
+            self.confirm_discard = Some(Pane::Card);
+            return;
+        }
+        self.group_name = self.group(id).map(|g| g.name.clone()).unwrap_or_default();
+        self.group_number.clear();
+        self.active_group = Some(id.to_string());
+        self.selected = None;
+        self.filter = Filter::Group(id.to_string());
+        self.pane = Pane::Card;
+    }
+
+    pub fn finish_pending_group_navigation(&mut self) {
+        if self.pending_new_group {
+            self.pending_new_group = false;
+            self.new_group();
+        } else if let Some(id) = self.pending_group.take() {
+            self.select_group(&id);
+        }
+    }
+
+    pub fn save_group(&mut self, mut group: ContactGroup) {
+        let Some(store) = &self.store else { return };
+        match store.save_group(&mut group) {
+            Ok(()) => self.reload(),
+            Err(e) => self.notify(format!("Couldn't save group: {e}"), true),
+        }
+    }
+
+    pub fn delete_group(&mut self, id: &str) {
+        let Some(store) = &self.store else { return };
+        match store.delete_group(id) {
+            Ok(()) => {
+                self.active_group = None;
+                self.filter = Filter::All;
+                self.reload();
+                self.notify("Group deleted.", false);
+            }
+            Err(e) => self.notify(format!("Couldn't delete group: {e}"), true),
+        }
+    }
+
     /// Save a contact to the shared store and show it.
     pub fn save_contact(&mut self, mut c: Contact) -> bool {
         let Some(store) = &self.store else {
@@ -299,6 +408,14 @@ impl App {
         match store.save(&mut c) {
             Ok(()) => {
                 let id = c.id.clone();
+                if let Filter::Group(group_id) = &self.filter {
+                    if let Some(mut group) = self.group(group_id).cloned() {
+                        group.add_contact(id.clone());
+                        if let Err(e) = store.save_group(&mut group) {
+                            self.notify(format!("Contact saved, but couldn't add it to the group: {e}"), true);
+                        }
+                    }
+                }
                 self.reload();
                 self.selected = Some(id);
                 true
@@ -362,6 +479,10 @@ impl App {
             Filter::Recent => chrono::DateTime::parse_from_rfc3339(&c.updated).map(|d| chrono::Utc::now().signed_duration_since(d).num_days() < 7).unwrap_or(false),
             Filter::Unlabeled => c.labels.is_empty(),
             Filter::Label(l) => c.labels.iter().any(|x| x.eq_ignore_ascii_case(l)),
+            Filter::Group(id) => self.group(id).is_some_and(|g| g.members.iter().any(|m| match m {
+                GroupMember::Contact { id } => id == &c.id,
+                GroupMember::Number { number } => c.phones.iter().any(|p| contactcraft_store::phone_key(number) == contactcraft_store::phone_key(&p.value) && contactcraft_store::phone_key(number).is_some()),
+            })),
         }
     }
 
@@ -377,6 +498,7 @@ impl App {
 
     /// Open the editor on a new contact.
     pub fn new_contact(&mut self) {
+        self.active_group = None;
         let mut c = Contact::new();
         c.phones.push(contactcraft_store::Labeled::new("mobile", ""));
         c.emails.push(contactcraft_store::Email { label: "home".into(), ..Default::default() });
@@ -421,6 +543,7 @@ impl App {
             return;
         }
         self.selected = Some(id.to_string());
+        self.active_group = None;
         self.pane = Pane::Card;
     }
 
@@ -529,6 +652,24 @@ impl App {
             )
         });
         let typing = ctx.memory(|m| m.focused().is_some());
+        if let Some(id) = self.confirm_delete.clone() {
+            if enter {
+                ctx.input_mut(|i| { i.consume_key(egui::Modifiers::NONE, egui::Key::Enter); });
+                self.confirm_delete = None;
+                self.delete_contact(&id);
+            } else if esc {
+                self.confirm_delete = None;
+            }
+            return;
+        }
+        if let Some(id) = self.confirm_group_delete.clone() {
+            if enter {
+                ctx.input_mut(|i| { i.consume_key(egui::Modifiers::NONE, egui::Key::Enter); });
+                self.confirm_group_delete = None;
+                self.delete_group(&id);
+            } else if esc { self.confirm_group_delete = None; }
+            return;
+        }
         if self.dialog.is_some() {
             if save {
                 self.save_pane();

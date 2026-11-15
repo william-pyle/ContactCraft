@@ -1,6 +1,6 @@
 {
   "name": "contactcraft",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "private": true,
   "description": "ContactCraft: a Windows contacts app shared with every Craft app, in the MailCraft style. The app itself is Rust; this file only gives the usual build command.",
   "scripts": {

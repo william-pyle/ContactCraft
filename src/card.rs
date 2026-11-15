@@ -36,7 +36,10 @@ impl App {
         let th = &c.theme;
         let accent = widgets::contact_color(c);
         let accent2 = theme::hex(&th.accent2).unwrap_or_else(|| accent.linear_multiply(0.55).to_opaque());
-        let banner_ink = theme::hex(&th.text).unwrap_or_else(|| theme::ink_on(mix(accent, accent2, 0.5)));
+        let banner_ink = theme::hex(&th.text).unwrap_or_else(|| {
+            if self.store.as_ref().is_some_and(|s| s.banner_path(th).is_some()) { Color32::WHITE }
+            else { theme::ink_on(mix(accent, accent2, 0.5)) }
+        });
         let bg = theme::hex(&th.background);
         let base_text = match bg {
             Some(b) => theme::ink_on(b),
@@ -68,10 +71,25 @@ impl App {
         let ctx = ui.ctx().clone();
         if c.theme.style == "solid" {
             ui.painter().rect_filled(rect, corner, look.accent);
-            return;
-        }
-        if let Some(tex) = self.banner_texture(&ctx, &c.theme, look.accent, look.accent2) {
+        } else if let Some(tex) = self.banner_texture(&ctx, &c.theme, look.accent, look.accent2) {
             ui.painter().add(egui::epaint::RectShape::filled(rect, corner, Color32::WHITE).with_texture(tex, Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0))));
+        }
+        if let Some(path) = self.store.as_ref().and_then(|s| s.banner_path(&c.theme)) {
+            if let Some(tex) = self.texture(&ctx, &path, false, false) {
+                if let Some(size) = self.texture_size(&ctx, tex) {
+                    let ra = rect.width() / rect.height().max(1.0);
+                    let ia = size.x / size.y.max(1.0);
+                    let uv = if ia > ra {
+                        let w = ra / ia;
+                        Rect::from_min_max(pos2((1.0 - w) / 2.0, 0.0), pos2((1.0 + w) / 2.0, 1.0))
+                    } else {
+                        let h = ia / ra;
+                        Rect::from_min_max(pos2(0.0, (1.0 - h) / 2.0), pos2(1.0, (1.0 + h) / 2.0))
+                    };
+                    ui.painter().add(egui::epaint::RectShape::filled(rect, corner, Color32::WHITE).with_texture(tex, uv));
+                    ui.painter().rect_filled(rect, corner, Color32::from_black_alpha(55));
+                }
+            }
         }
     }
 
