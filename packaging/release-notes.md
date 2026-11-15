@@ -1,11 +1,16 @@
-## ContactCraft 1.2.1
+## ContactCraft 1.2.2
 
 Contacts and groups on Windows, with pictures and themes shared with other applications.
 
+### New in 1.2.2
+
+- **Solid person icon.** The app icon, title bar and website favicon now use a solid white person
+  on the blue tile.
+
 ### New in 1.2.1
 
-- **Person icon corrected.** The app icon, title bar and website favicon now use the white person
-  outline from the requested reference on the existing blue tile.
+- **Person icon changed.** The app icon, title bar and website favicon used a white person outline
+  on the blue tile.
 
 ### New in 1.2.0
 
@@ -17,11 +22,11 @@ Contacts and groups on Windows, with pictures and themes shared with other appli
   colour and pattern choices.
 - **Delete confirmation.** Pressing Enter now confirms the contact deletion dialog.
 - **Theme editor wording.** The editor uses “App Default” and no longer names other applications.
-- **Updated icon.** The blue tile now has a white person outline.
+- **Updated icon.** The blue tile used a solid white person silhouette.
 - **Group navigation for other applications.** `--open-group <id>` opens an existing group in the
   full app. `--new-group --group-name <name> [--group-number <number> ...]` creates and opens one.
 
-Installed copies of ContactCraft 1.1.0 and 1.2.0 offer this update the next time they start.
+Installed copies of ContactCraft 1.1.0 through 1.2.1 offer this update the next time they start.
 
 ### Download
 

@@ -20,6 +20,7 @@ pub enum Icon {
     Gear,
     Phone,
     Person,
+    PersonSolid,
     People,
     Reply,
     Copy,
@@ -206,6 +207,18 @@ pub fn paint(p: &Painter, rect: Rect, icon: Icon, c: Color32, a: Color32) {
         Icon::Person => {
             s.circle(10.0, 6.5, 3.5, c);
             s.arc(10.0, 18.5, 6.5, -PI, 0.0, c);
+        }
+        Icon::PersonSolid => {
+            s.dot(10.0, 6.5, 3.5, c);
+            s.p.add(Shape::convex_polygon(
+                vec![
+                    s.pt(2.0, 18.0), s.pt(3.0, 15.0), s.pt(5.0, 13.0),
+                    s.pt(8.0, 11.5), s.pt(12.0, 11.5), s.pt(15.0, 13.0),
+                    s.pt(17.0, 15.0), s.pt(18.0, 18.0),
+                ],
+                c,
+                Stroke::NONE,
+            ));
         }
         Icon::People => {
             s.circle(7.5, 7.0, 3.0, c);

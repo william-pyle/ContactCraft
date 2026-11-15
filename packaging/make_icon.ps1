@@ -1,4 +1,4 @@
-# Draws ContactCraft's icon (the Craft family's blue tile with a white person outline) and writes
+# Draws ContactCraft's icon (the Craft family's blue tile with a solid white person) and writes
 # assets\contactcraft.ico (16, 24, 32, 48, 64, 128 and 256 px) and web\favicon.ico.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -23,16 +23,14 @@ function Draw([int]$n) {
     $g.FillPath($blueBrush, $tile)
     $tile.Dispose()
     $blueBrush.Dispose()
-    $white = New-Object System.Drawing.Pen ([System.Drawing.Color]::White), ([Math]::Max(1.0, 2.3*$k))
-    $white.StartCap = 'Round'
-    $white.EndCap = 'Round'
-    $white.LineJoin = 'Round'
-    $g.DrawEllipse($white, 21*$k, 10*$k, 22*$k, 22*$k)
+    $white = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::White)
+    $g.FillEllipse($white, 20*$k, 10*$k, 24*$k, 24*$k)
     $body = New-Object System.Drawing.Drawing2D.GraphicsPath
     $body.AddBezier((12*$k), (52*$k), (15*$k), (41*$k), (22*$k), (36*$k), (32*$k), (36*$k))
     $body.AddBezier((32*$k), (36*$k), (42*$k), (36*$k), (49*$k), (41*$k), (52*$k), (52*$k))
     $body.AddLine((52*$k), (52*$k), (12*$k), (52*$k))
-    $g.DrawPath($white, $body)
+    $body.CloseFigure()
+    $g.FillPath($white, $body)
     $body.Dispose()
     $white.Dispose()
     $g.Dispose()
