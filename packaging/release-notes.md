@@ -1,6 +1,14 @@
-## ContactCraft 1.2.2
+## ContactCraft 1.2.3
 
 Contacts and groups on Windows, with pictures and themes shared with other applications.
+
+### New in 1.2.3
+
+- **Contact and group dialogs for other apps.** New and Edit actions from MessageCraft open only
+  the appropriate editor. Group changes stay in a draft until **Save**; **Cancel** or closing the
+  window leaves the group unchanged.
+- **Shared results.** A saved group returns its ID to the calling app, so the app can refresh its
+  contact groups immediately.
 
 ### New in 1.2.2
 
@@ -26,7 +34,7 @@ Contacts and groups on Windows, with pictures and themes shared with other appli
 - **Group navigation for other applications.** `--open-group <id>` opens an existing group in the
   full app. `--new-group --group-name <name> [--group-number <number> ...]` creates and opens one.
 
-Installed copies of ContactCraft 1.1.0 through 1.2.1 offer this update the next time they start.
+Installed copies of ContactCraft 1.1.0 through 1.2.2 offer this update the next time they start.
 
 ### Download
 

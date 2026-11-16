@@ -1,4 +1,4 @@
-//! Dialog mode: other apps start ContactCraft to create or edit one contact.
+//! Dialog mode: other apps start ContactCraft to create or edit a contact or group.
 //!
 //! ```text
 //! ContactCraft.exe --new-contact [--name "Anna Smith"] [--given Anna] [--family Smith]
@@ -10,7 +10,7 @@
 //! ... [--result-file <path>] [--theme-tab]
 //! ```
 //!
-//! A small window that stays on top shows only the editor. Save stores the contact and closes;
+//! A small window that stays on top shows only the editor. Save stores the record and closes;
 //! Cancel or closing the window closes without saving. The outcome is given three ways:
 //! the exit code (0 saved, 1 cancelled, 2 not found or failed), one line on standard output
 //! (`saved <id>`, `cancelled`, `error <message>`), and, with `--result-file`, a JSON file
@@ -20,7 +20,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicI32, Ordering};
 
-use contactcraft_store::{Contact, Email, Labeled};
+use contactcraft_store::{Contact, ContactGroup, Email, Labeled};
 use egui::{Frame, Margin, Ui};
 
 use crate::app::{App, Pane};
@@ -47,6 +47,8 @@ pub enum Target {
     Edit(String),
     ByPhone(String, Prefill),
     ByEmail(String, Prefill),
+    NewGroup { name: String, numbers: Vec<String> },
+    EditGroup(String),
 }
 
 #[derive(Clone, Debug)]
@@ -63,6 +65,9 @@ pub struct DialogState {
     pub last_saved: Option<String>,
     /// The person read the error and clicked Close.
     pub acknowledged: bool,
+    pub group: Option<ContactGroup>,
+    pub pending_banner: Option<Vec<u8>>,
+    pub pending_background: Option<Vec<u8>>,
 }
 
 fn value(args: &[String], flag: &str) -> Option<String> {
@@ -70,7 +75,7 @@ fn value(args: &[String], flag: &str) -> Option<String> {
     args.get(i + 1).filter(|v| !v.starts_with("--")).cloned()
 }
 
-/// Read the dialog options, if ContactCraft was started for one contact.
+/// Read the dialog options, if ContactCraft was started to edit one record.
 pub fn parse(args: &[String]) -> Option<DialogRequest> {
     let mut p = Prefill {
         given: value(args, "--given").unwrap_or_default(),
@@ -100,6 +105,13 @@ pub fn parse(args: &[String]) -> Option<DialogRequest> {
         Target::ByEmail(e, p)
     } else if args.iter().any(|a| a == "--new-contact") {
         Target::New(p)
+    } else if let Some(id) = value(args, "--open-group") {
+        Target::EditGroup(id)
+    } else if args.iter().any(|a| a == "--new-group") {
+        Target::NewGroup {
+            name: value(args, "--group-name").unwrap_or_else(|| "New group".into()),
+            numbers: args.windows(2).filter(|w| w[0] == "--group-number").map(|w| w[1].clone()).collect(),
+        }
     } else {
         return None;
     };
@@ -110,6 +122,8 @@ pub fn parse(args: &[String]) -> Option<DialogRequest> {
 pub fn title(r: &DialogRequest) -> &'static str {
     match r.target {
         Target::New(_) => "New contact - ContactCraft",
+        Target::NewGroup { .. } => "New group - ContactCraft",
+        Target::EditGroup(_) => "Edit group - ContactCraft",
         _ => "Edit contact - ContactCraft",
     }
 }
@@ -134,6 +148,19 @@ impl App {
     /// Set the editor up for the request.
     pub fn start_dialog(&mut self, request: DialogRequest) {
         let mut error = None;
+        let group = match &request.target {
+            Target::NewGroup { name, numbers } => {
+                let mut group = ContactGroup::new(name.clone());
+                for number in numbers { group.add_number(number.clone()); }
+                Some(group)
+            }
+            Target::EditGroup(id) => {
+                let found = self.group(id).cloned();
+                if found.is_none() { error = Some(format!("There's no group with the id {id}.")); }
+                found
+            }
+            _ => None,
+        };
         let contact = match &request.target {
             Target::New(p) => Some(new_from(p)),
             Target::Edit(id) => {
@@ -145,6 +172,7 @@ impl App {
             }
             Target::ByPhone(n, p) => Some(self.store.as_ref().and_then(|s| s.find_by_phone(n).ok().flatten()).unwrap_or_else(|| new_from(&Prefill { phone: n.clone(), ..p.clone() }))),
             Target::ByEmail(e, p) => Some(self.store.as_ref().and_then(|s| s.find_by_email(e).ok().flatten()).unwrap_or_else(|| new_from(&Prefill { email: e.clone(), ..p.clone() }))),
+            Target::NewGroup { .. } | Target::EditGroup(_) => None,
         };
         if self.store.is_none() {
             error = Some(self.store_error.clone().unwrap_or_else(|| "The contacts couldn't be opened.".into()));
@@ -153,7 +181,11 @@ impl App {
             self.selected = (!c.id.is_empty()).then(|| c.id.clone());
             self.pane = if request.theme_tab { Pane::Theme(Box::new(c)) } else { Pane::Edit(Box::new(c)) };
         }
-        self.dialog = Some(DialogState { request, error, finished: false, last_saved: None, acknowledged: false });
+        if let Some(group) = &group {
+            self.group_name = group.name.clone();
+            self.group_number.clear();
+        }
+        self.dialog = Some(DialogState { request, error, finished: false, last_saved: None, acknowledged: false, group, pending_banner: None, pending_background: None });
     }
 
     /// The whole window in dialog mode: the editor (or theme editor) and nothing else.
@@ -164,7 +196,8 @@ impl App {
             if let Some(e) = &error {
                 ui.add_space(30.0);
                 ui.vertical_centered(|ui| {
-                    ui.label(egui::RichText::new("ContactCraft couldn't open that contact").font(theme::semibold(18.0)).color(t.text));
+                    let kind = if matches!(self.dialog.as_ref().map(|d| &d.request.target), Some(Target::NewGroup { .. } | Target::EditGroup(_))) { "group" } else { "contact" };
+                    ui.label(egui::RichText::new(format!("ContactCraft couldn't open that {kind}")).font(theme::semibold(18.0)).color(t.text));
                     ui.add_space(6.0);
                     ui.label(egui::RichText::new(e).font(theme::regular(13.0)).color(t.text_dim));
                     ui.add_space(14.0);
@@ -176,6 +209,10 @@ impl App {
                 });
                 return;
             }
+            if self.dialog.as_ref().is_some_and(|d| d.group.is_some()) {
+                self.group_editor(ui);
+                return;
+            }
             match self.pane.clone() {
                 Pane::Edit(_) => self.contact_editor(ui),
                 Pane::Theme(_) => self.theme_editor(ui),
@@ -184,14 +221,43 @@ impl App {
         });
         // Back on the card means the editing is over: saved or cancelled.
         let waiting_on_error = error.is_some() && !self.dialog.as_ref().is_some_and(|d| d.acknowledged);
-        if self.pane == Pane::Card && self.confirm_discard.is_none() && !waiting_on_error {
+        let group_dialog = self.dialog.as_ref().is_some_and(|d| matches!(d.request.target, Target::NewGroup { .. } | Target::EditGroup(_)));
+        if let Some(e) = error.as_ref().filter(|_| !waiting_on_error) {
+            let ctx = ui.ctx().clone();
+            self.finish_dialog(&ctx, "error", None, Some(e.clone()));
+        } else if !group_dialog && self.pane == Pane::Card && self.confirm_discard.is_none() && !waiting_on_error {
             let saved = self.dialog.as_ref().and_then(|d| d.last_saved.clone());
             let ctx = ui.ctx().clone();
-            match (saved, error) {
-                (_, Some(e)) => self.finish_dialog(&ctx, "error", None, Some(e)),
-                (Some(id), None) => self.finish_dialog(&ctx, "saved", Some(id), None),
-                (None, None) => self.finish_dialog(&ctx, "cancelled", None, None),
+            match saved {
+                Some(id) => self.finish_dialog(&ctx, "saved", Some(id), None),
+                None => self.finish_dialog(&ctx, "cancelled", None, None),
             }
+        }
+    }
+
+    pub fn save_group_dialog(&mut self, ctx: &egui::Context) {
+        let Some(d) = &self.dialog else { return };
+        let Some(mut group) = d.group.clone() else { return };
+        let name = self.group_name.trim();
+        if name.is_empty() {
+            self.notify("Give the group a name.", true);
+            return;
+        }
+        group.name = name.to_string();
+        if group.id.is_empty() { group.id = contactcraft_store::new_id(); }
+        let Some(store) = &self.store else { return };
+        let result = (|| {
+            if let Some(bytes) = &d.pending_banner { store.set_banner(&mut group.theme, &group.id, bytes)?; }
+            if let Some(bytes) = &d.pending_background { store.set_group_background(&mut group, bytes)?; }
+            store.save_group(&mut group)
+        })();
+        match result {
+            Ok(()) => {
+                let id = group.id.clone();
+                self.reload();
+                self.finish_dialog(ctx, "saved", Some(id), None);
+            }
+            Err(e) => self.notify(format!("Couldn't save group: {e}"), true),
         }
     }
 
@@ -233,5 +299,27 @@ impl App {
 
     pub fn in_dialog(&self) -> bool {
         self.dialog.is_some()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{parse, Target};
+
+    #[test]
+    fn group_commands_enter_dialog_mode_with_prefill() {
+        let args = ["ContactCraft.exe", "--new-group", "--group-name", "Weekend team", "--group-number", "+1 555 010 2030", "--group-number", "555-0104"]
+            .map(str::to_string);
+        let request = parse(&args).expect("new group should open the editor dialog");
+        match request.target {
+            Target::NewGroup { name, numbers } => {
+                assert_eq!(name, "Weekend team");
+                assert_eq!(numbers, ["+1 555 010 2030", "555-0104"]);
+            }
+            _ => panic!("expected a new group dialog"),
+        }
+
+        let args = ["ContactCraft.exe", "--open-group", "group-id"].map(str::to_string);
+        assert!(matches!(parse(&args).map(|r| r.target), Some(Target::EditGroup(id)) if id == "group-id"));
     }
 }

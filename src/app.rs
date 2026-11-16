@@ -212,20 +212,7 @@ impl App {
         }
         app.reload();
         app.selected = app.contacts.first().map(|c| c.id.clone());
-        if let Some(id) = args.windows(2).find(|w| w[0] == "--open-group").map(|w| w[1].clone()) {
-            if app.group(&id).is_some() { app.select_group(&id); }
-            else { app.notify("That contact group no longer exists.", true); }
-        } else if args.iter().any(|arg| arg == "--new-group") {
-            let name = args.windows(2).find(|w| w[0] == "--group-name").map(|w| w[1].clone()).unwrap_or_else(|| "New group".into());
-            let mut group = ContactGroup::new(name);
-            for pair in args.windows(2).filter(|w| w[0] == "--group-number") { group.add_number(pair[1].clone()); }
-            if let Some(store) = &app.store {
-                match store.save_group(&mut group) {
-                    Ok(()) => { app.reload(); app.select_group(&group.id); }
-                    Err(e) => app.notify(format!("Couldn't create the group: {e}"), true),
-                }
-            }
-        }
+        let dialog_mode = crate::dialog::parse(&args).is_some();
         // Open straight onto a page (handy for the demo and for screenshots).
         if let Some(c) = app.selected_contact() {
             if args.iter().any(|a| a == "--edit") {
@@ -244,7 +231,6 @@ impl App {
             app.backstage = Some(Backstage::Sharing);
         }
         app.apply_settings(&cc.egui_ctx);
-        let dialog_mode = crate::dialog::parse(&args).is_some();
         // Let other Craft apps find this program through the store.
         if !demo {
             if let (Some(store), Ok(exe)) = (&app.store, std::env::current_exe()) {
@@ -671,6 +657,11 @@ impl App {
             return;
         }
         if self.dialog.is_some() {
+            if self.dialog.as_ref().is_some_and(|d| d.group.is_some()) {
+                if save { self.save_group_dialog(ctx); }
+                if esc { self.finish_dialog(ctx, "cancelled", None, None); }
+                return;
+            }
             if save {
                 self.save_pane();
             }

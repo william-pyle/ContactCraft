@@ -234,9 +234,9 @@ Each contact carries its picture and theme, so a person looks the same in every 
 
 ## Command line for other apps
 
-Other apps can ask ContactCraft to create or edit one contact. ContactCraft then opens a small
-window that stays on top of other windows and shows only the editor. **Save** stores the contact
-and closes the window; **Cancel** or closing the window closes it without saving.
+Other apps can ask ContactCraft to create or edit one contact or group. ContactCraft then opens a
+small window that stays on top of other windows and shows only the editor. **Save** stores the
+record and closes the window; **Cancel** or closing the window closes it without saving.
 
 ```text
 ContactCraft.exe --new-contact [--name "Anna Smith"] [--given Anna] [--family Smith]
@@ -246,11 +246,12 @@ ContactCraft.exe --edit-contact <id>
 ContactCraft.exe --edit-phone "<number>"     edits the contact with that number (any format),
                                              or starts a new one with it filled in
 ContactCraft.exe --edit-email <address>      the same, by email address
-ContactCraft.exe --open-group <id>            open the full app on an existing group
+ContactCraft.exe --open-group <id>            edit an existing group in a dialog
 ContactCraft.exe --new-group --group-name "Weekend team"
                  [--group-number "+1 555 010 2030" ...]
 Add to any of them:
   --result-file "<path>"   write the outcome as JSON
+For contacts:
   --theme-tab              open on the theme editor instead of the details
 ```
 
@@ -322,7 +323,7 @@ spacing (one line per contact), sort by last name, and the update check.
 | `--cleanup` / `--cleanup-run` | (demo) open Clean Up, or run it straight away |
 | `--no-update-check` | Don't check for a new version this time |
 | `--new-contact`, `--edit-contact`, `--edit-phone`, `--edit-email` | Open only the editor for one contact (see [Command line for other apps](#command-line-for-other-apps)) |
-| `--open-group <id>`, `--new-group --group-name <name> [--group-number <number> ...]` | Open the full app on a group; a new group is saved immediately so its theme and members can be edited |
+| `--open-group <id>`, `--new-group --group-name <name> [--group-number <number> ...]` | Open only the group editor; the group is saved when Save is pressed |
 
 ## Building from source
 
@@ -394,7 +395,7 @@ ContactCraft/
 │   ├── io.rs                import and export
 │   ├── backstage.rs         the File view
 │   ├── update.rs            the update check, download and install
-│   ├── dialog.rs            the one-contact editor window other apps open
+│   ├── dialog.rs            contact and group editor windows other apps open
 │   └── theme.rs, icons.rs, widgets.rs   the Craft look
 ├── store/                   contactcraft-store: the shared contact library
 │   ├── src/model.rs         contacts, groups and their themes

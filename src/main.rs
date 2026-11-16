@@ -28,13 +28,15 @@ fn app_icon() -> egui::IconData {
 
 fn main() -> eframe::Result {
     let args: Vec<String> = std::env::args().collect();
-    // Started by another app to create or edit one contact: a small window that stays on top.
+    // Started by another app to create or edit one contact or group.
     if let Some(req) = dialog::parse(&args) {
+        let group_dialog = matches!(req.target, dialog::Target::NewGroup { .. } | dialog::Target::EditGroup(_));
+        let size = if group_dialog { [780.0, 760.0] } else { [900.0, 880.0] };
         let options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_title(dialog::title(&req))
                 .with_app_id("ContactCraft.Dialog")
-                .with_inner_size([900.0, 880.0])
+                .with_inner_size(size)
                 .with_min_inner_size([620.0, 480.0])
                 .with_always_on_top()
                 .with_minimize_button(false)

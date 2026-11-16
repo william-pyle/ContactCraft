@@ -124,10 +124,12 @@ them.
 An empty colour always means App Default. `Store::set_banner(&mut theme, owner_id, bytes)` writes
 PNG, JPEG, GIF or WebP bytes to the shared theme folder; save the contact or group afterwards.
 
-## Asking ContactCraft to edit a contact
+## Asking ContactCraft to edit a contact or group
 
 Any app can start `ContactCraft.exe --new-contact`, `--edit-contact <id>`, `--edit-phone <number>`
 or `--edit-email <address>` to show only ContactCraft's editor, in a window that stays on top.
+Use `--new-group --group-name <name> [--group-number <number> ...]` or `--open-group <id>`
+for the group editor. New groups stay in memory until Save is pressed; Cancel leaves no group.
 It returns exit code 0 (saved, with `saved <id>` on standard output), 1 (cancelled) or 2 (error),
 and `--result-file <path>` writes the outcome as JSON. `Store::contactcraft_exe()` finds the
 program. See the README's "Command line for other apps".
