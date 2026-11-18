@@ -1,6 +1,6 @@
 [package]
 name = "contactcraft-store"
-version = "1.2.2"
+version = "1.2.4"
 edition = "2024"
 description = "ContactCraft's shared store for contacts, groups and themes"
 license = "MIT"

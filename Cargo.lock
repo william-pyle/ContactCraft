@@ -648,23 +648,25 @@ dependencies = [
 
 [[package]]
 name = "contactcraft"
-version = "1.2.3"
+version = "1.2.4"
 dependencies = [
  "chrono",
  "contactcraft-store",
  "eframe",
  "egui",
  "image",
+ "raw-window-handle",
  "rfd",
  "serde",
  "serde_json",
  "ureq",
+ "windows-sys 0.61.2",
  "winresource",
 ]
 
 [[package]]
 name = "contactcraft-store"
-version = "1.2.2"
+version = "1.2.4"
 dependencies = [
  "base64 0.22.1",
  "chrono",

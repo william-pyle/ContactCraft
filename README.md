@@ -113,6 +113,12 @@ Open **ContactCraft** from the Start menu.
 
 To look around first with made-up contacts (nothing is saved), run `ContactCraft.exe --demo`.
 
+The top toolbar also controls the window: click the app icon for the Windows system menu,
+drag empty space to move, or double-click empty space to maximize/restore. Resize using any
+edge or corner. Minimize, maximize/restore and close are at the right. Alt+Space opens the
+window menu and Alt+F4 closes the window. These controls also appear in editor-only dialogs;
+closing a dialog cancels it. At narrow widths, Sharing remains available as an icon.
+
 ## Importing your contacts
 
 Click **Import** (or drop a file on the window). ContactCraft shows how many contacts the file
@@ -343,7 +349,7 @@ npm run build
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
-`build.ps1` runs the store's tests, builds `ContactCraft.exe` in release mode, and writes to
+`build.ps1` runs the workspace tests (including window hit testing), builds `ContactCraft.exe` in release mode, and writes to
 `dist\`:
 
 - `ContactCraft.exe`
@@ -354,6 +360,14 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 - the guides and notices
 
 Tests on their own: `cargo test --workspace`.
+
+Native window smoke checks: `powershell -ExecutionPolicy Bypass -File scripts/check-window-chrome.ps1`.
+This launches isolated debug/demo fixtures for the main window and both editor dialogs,
+checks native geometry and window state, saves screenshots and verifies settings and dialog
+cancellation. It does not drive real mouse/keyboard input. Manually verify toolbar dragging,
+edge/corner dragging, icon/right-click/Alt+Space menus, Alt+F4, snapping, and moving between
+monitors with different DPI. At minimum size with high app zoom, the existing content panes
+can overflow; the window toolbar stays available.
 
 The installer takes its version from `Cargo.toml`, so the program, the update check and the
 installer always agree. Its UpgradeCode is ContactCraft's own: a newer MSI replaces an older one

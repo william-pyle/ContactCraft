@@ -17,6 +17,8 @@ const RAIL_W: f32 = 48.0;
 
 impl App {
     pub fn draw(&mut self, ui: &mut Ui) {
+        let t = self.t;
+        Panel::top("title_bar").exact_size(TITLE_BAR).frame(Frame::new().fill(t.title_bar)).show(ui, |ui| self.title_bar(ui));
         if self.in_dialog() {
             self.draw_dialog(ui);
             let ctx = ui.ctx().clone();
@@ -24,8 +26,6 @@ impl App {
             self.notice_overlay(&ctx);
             return;
         }
-        let t = self.t;
-        Panel::top("title_bar").exact_size(TITLE_BAR).frame(Frame::new().fill(t.title_bar)).show(ui, |ui| self.title_bar(ui));
         Panel::bottom("status_bar").exact_size(STATUS_BAR_H).frame(Frame::new().fill(t.status_bar)).show(ui, |ui| self.status_bar(ui));
         Panel::left("rail").exact_size(RAIL_W).resizable(false).show_separator_line(false).frame(Frame::new().fill(t.nav)).show(ui, |ui| self.rail(ui));
         Panel::top("tabs").exact_size(TAB_H).show_separator_line(false).frame(Frame::new().fill(t.tab_strip)).show(ui, |ui| self.tab_strip(ui));
@@ -88,6 +88,22 @@ impl App {
         let mark = Rect::from_min_size(pos2(rect.min.x + 12.0, rect.center().y - 12.0), Vec2::splat(24.0));
         p.rect_filled(mark, 6.0, t.accent);
         icons::paint(&p, mark.shrink(3.5), Icon::PersonSolid, Color32::WHITE, Color32::WHITE);
+        let menu = ui.interact(mark.expand(4.0), ui.scope_id().with("system_menu"), Sense::click());
+        menu.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, "Window menu (Alt+Space)"));
+        if menu.clicked() || menu.secondary_clicked() {
+            if let Err(error) = self.window_chrome.system_menu() { self.notify(error, true); }
+        }
+        menu.on_hover_text("Window menu (Alt+Space)");
+
+        let controls = Rect::from_min_max(pos2(rect.max.x - 126.0, rect.min.y), rect.max);
+        self.window_buttons(ui, controls);
+        let mut interactive = vec![mark.expand(4.0), controls];
+        if let Some(dialog) = &self.dialog {
+            p.with_clip_rect(Rect::from_min_max(pos2(mark.max.x + 10.0, rect.min.y), pos2(controls.min.x - 8.0, rect.max.y)))
+                .text(pos2(mark.max.x + 14.0, rect.center().y), Align2::LEFT_CENTER, crate::dialog::title(&dialog.request), theme::semibold(13.0), t.text);
+            self.window_chrome.set_toolbar(rect, interactive, ui.ctx().pixels_per_point());
+            return;
+        }
 
         // Quick access: new contact and import.
         let mut qat = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_min_size(pos2(mark.max.x + 10.0, rect.center().y - 14.0), vec2(80.0, 28.0))).layout(egui::Layout::left_to_right(egui::Align::Center)));
@@ -98,15 +114,23 @@ impl App {
         if icon_button(&mut qat, &t, Icon::Import, 28.0, "Import contacts from a file").clicked() {
             self.pick_import_file();
         }
+        interactive.push(qat.min_rect().expand(2.0));
 
         // Search, centred like MailCraft's.
-        let w = (rect.width() * 0.36).clamp(260.0, 540.0);
-        let sr = Rect::from_center_size(pos2(rect.center().x, rect.center().y), vec2(w, SEARCH_BOX));
+        let compact = rect.width() < 900.0;
+        let sharing_width = if compact { 38.0 } else { 206.0 };
+        let search_left = rect.min.x + 140.0;
+        let search_right = controls.min.x - sharing_width - 20.0;
+        let w = (rect.width() * 0.36).clamp(200.0, 540.0).min((search_right - search_left).max(80.0));
+        let center = rect.center().x.clamp(search_left + w / 2.0, search_right - w / 2.0);
+        let sr = Rect::from_center_size(pos2(center, rect.center().y), vec2(w, SEARCH_BOX));
+        interactive.push(sr);
         let focused = ui.memory(|m| m.focused() == Some(egui::Id::unique("search_box")));
         p.rect_filled(sr, 6.0, t.input);
         p.rect_stroke(sr, 6.0, Stroke::new(1.0, if focused { t.accent } else { t.border_strong }), StrokeKind::Inside);
         icons::paint(&p, Rect::from_min_size(pos2(sr.min.x + 10.0, sr.center().y - 8.0), Vec2::splat(16.0)), Icon::Search, t.text_dim, t.text_dim);
-        let edit_rect = Rect::from_min_max(pos2(sr.min.x + 34.0, sr.min.y + 2.0), pos2(sr.max.x - if self.search.is_empty() { 120.0 } else { 34.0 }, sr.max.y - 2.0));
+        let show_filter = self.search.is_empty() && w >= 300.0;
+        let edit_rect = Rect::from_min_max(pos2(sr.min.x + 34.0, sr.min.y + 2.0), pos2(sr.max.x - if show_filter { 120.0 } else { 34.0 }, sr.max.y - 2.0));
         let mut child = ui.new_child(egui::UiBuilder::new().max_rect(edit_rect).layout(egui::Layout::left_to_right(egui::Align::Center)));
         let edit = egui::TextEdit::singleline(&mut self.search)
             .id(egui::Id::unique("search_box"))
@@ -123,9 +147,9 @@ impl App {
             resp.request_focus();
             self.focus_search = false;
         }
-        if self.search.is_empty() {
+        if show_filter {
             p.text(pos2(sr.max.x - 12.0, sr.center().y), Align2::RIGHT_CENTER, self.filter_label(), theme::regular(12.0), t.text_dim);
-        } else {
+        } else if !self.search.is_empty() {
             let cr = Rect::from_center_size(pos2(sr.max.x - 17.0, sr.center().y), Vec2::splat(22.0));
             let mut c = ui.new_child(egui::UiBuilder::new().max_rect(cr));
             if icon_button(&mut c, &t, Icon::Close, 22.0, "Clear search").clicked() {
@@ -134,7 +158,7 @@ impl App {
         }
 
         // Right: whether the other Craft apps can see the contacts.
-        let right = Rect::from_min_max(pos2(sr.max.x + 12.0, rect.min.y), pos2(rect.max.x - 12.0, rect.max.y));
+        let right = Rect::from_min_max(pos2(sr.max.x + 12.0, rect.min.y), pos2(controls.min.x - 8.0, rect.max.y));
         let mut r = ui.new_child(egui::UiBuilder::new().max_rect(right).layout(egui::Layout::right_to_left(egui::Align::Center)));
         r.spacing_mut().item_spacing.x = 8.0;
         let (dot, text) = match (&self.store, self.demo) {
@@ -142,8 +166,49 @@ impl App {
             (Some(_), true) => (t.icon_yellow, "Demo: nothing is saved"),
             (None, _) => (t.icon_red, "Contacts not open"),
         };
-        if widgets::chip(&mut r, &t, Icon::Share, text, Some(dot)).on_hover_text("How MessageCraft and MailCraft use these contacts").clicked() {
+        let sharing = if compact { icon_button(&mut r, &t, Icon::Share, 28.0, text) } else { widgets::chip(&mut r, &t, Icon::Share, text, Some(dot)) };
+        interactive.push(sharing.rect);
+        if sharing.on_hover_text("How MessageCraft and MailCraft use these contacts").clicked() {
             self.backstage = Some(Backstage::Sharing);
+        }
+        self.window_chrome.set_toolbar(rect, interactive, ui.ctx().pixels_per_point());
+    }
+
+    fn window_buttons(&mut self, ui: &mut Ui, controls: Rect) {
+        let maximized = ui.input(|i| i.viewport().maximized.unwrap_or(false));
+        for (index, label) in ["Minimize window", if maximized { "Restore window" } else { "Maximize window" }, "Close window (Alt+F4)"].iter().enumerate() {
+            let rect = Rect::from_min_size(pos2(controls.min.x + index as f32 * 42.0, controls.min.y), vec2(42.0, controls.height()));
+            let response = ui.interact(rect, ui.scope_id().with(("window_button", index)), Sense::click());
+            response.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, *label));
+            let ink = if index == 2 && response.hovered() { Color32::WHITE } else { self.t.text };
+            if response.hovered() || response.has_focus() {
+                ui.painter().rect_filled(rect, 0.0, if index == 2 { Color32::from_rgb(196, 43, 59) } else { self.t.hover });
+            }
+            let glyph = Rect::from_center_size(rect.center(), Vec2::splat(10.0));
+            let stroke = Stroke::new(1.0, ink);
+            match index {
+                0 => { ui.painter().line_segment([pos2(glyph.min.x, glyph.center().y), pos2(glyph.max.x, glyph.center().y)], stroke); }
+                1 => {
+                    if maximized {
+                        let back = glyph.translate(vec2(2.0, -2.0));
+                        ui.painter().line_segment([back.left_top(), back.right_top()], stroke);
+                        ui.painter().line_segment([back.right_top(), back.right_bottom()], stroke);
+                    }
+                    ui.painter().rect_stroke(glyph, 0.0, stroke, StrokeKind::Inside);
+                }
+                _ => {
+                    ui.painter().line_segment([glyph.left_top(), glyph.right_bottom()], stroke);
+                    ui.painter().line_segment([glyph.right_top(), glyph.left_bottom()], stroke);
+                }
+            }
+            if response.clicked() {
+                ui.ctx().send_viewport_cmd(match index {
+                    0 => egui::ViewportCommand::Minimized(true),
+                    1 => egui::ViewportCommand::Maximized(!maximized),
+                    _ => egui::ViewportCommand::Close,
+                });
+            }
+            response.on_hover_text(*label);
         }
     }
 

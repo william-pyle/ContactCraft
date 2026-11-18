@@ -11,9 +11,9 @@ if (-not (Test-Path (Join-Path $root 'assets\contactcraft.ico'))) {
     & (Join-Path $root 'packaging\make_icon.ps1')
 }
 
-Write-Host 'Checking the contact store...'
-cargo test -p contactcraft-store --quiet
-if ($LASTEXITCODE -ne 0) { throw 'The contact store tests failed.' }
+Write-Host 'Checking the application and contact store...'
+cargo test --workspace --quiet
+if ($LASTEXITCODE -ne 0) { throw 'The workspace tests failed.' }
 
 Write-Host 'Building ContactCraft...'
 cargo build --release

@@ -1,6 +1,20 @@
-## ContactCraft 1.2.3
+## ContactCraft 1.2.4
 
 Contacts and groups on Windows, with pictures and themes shared with other applications.
+
+### New in 1.2.4
+
+- **One integrated top bar.** The existing toolbar now includes the app's window menu and
+  minimize, maximize/restore and close controls, without a second Windows title bar.
+- **Native window handling.** Drag empty toolbar space, double-click to maximize or restore,
+  resize from every edge/corner, or use Alt+Space and Alt+F4. Windows still manages snapping,
+  DPI scaling and maximized work-area bounds.
+- **Existing actions stay available.** New contact, Import, Search and Sharing remain in the
+  toolbar; Sharing becomes an icon at narrower widths. Contact/group editor dialogs use the
+  same window controls and retain their Save/Cancel behavior.
+- **Small-window stability.** Resizing with high app zoom no longer passes a negative width
+  to the contact detail pane. The existing multi-pane content can still overflow at minimum
+  size with high zoom; the top window toolbar stays reachable.
 
 ### New in 1.2.3
 
@@ -34,7 +48,7 @@ Contacts and groups on Windows, with pictures and themes shared with other appli
 - **Group navigation for other applications.** `--open-group <id>` opens an existing group in the
   full app. `--new-group --group-name <name> [--group-number <number> ...]` creates and opens one.
 
-Installed copies of ContactCraft 1.1.0 through 1.2.2 offer this update the next time they start.
+Installed earlier copies offer this update the next time they start.
 
 ### Download
 

@@ -92,6 +92,7 @@ pub struct ImportPreview {
 }
 
 pub struct App {
+    pub window_chrome: crate::window_chrome::WindowChrome,
     pub t: Tokens,
     pub store: Option<Store>,
     pub store_error: Option<String>,
@@ -145,7 +146,7 @@ pub fn settings_dir() -> PathBuf {
 }
 
 impl App {
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    pub fn new(cc: &eframe::CreationContext<'_>, window_chrome: crate::window_chrome::WindowChrome) -> Self {
         let font_defs = crate::theme::install_fonts(&cc.egui_ctx);
         crate::theme::apply(&cc.egui_ctx);
         let args: Vec<String> = std::env::args().collect();
@@ -168,6 +169,7 @@ impl App {
             Err(e) => (None, Some(e)),
         };
         let mut app = App {
+            window_chrome,
             t: Tokens::light(),
             store,
             store_error,
@@ -828,6 +830,8 @@ impl eframe::App for App {
         }
         self.window_title(&ctx);
         self.draw(ui);
+        #[cfg(all(windows, debug_assertions))]
+        self.window_chrome.smoke_frame(&ctx);
         self.load_wanted_fonts(&ctx);
         // Notice another app's changes within a couple of seconds.
         ctx.request_repaint_after(Duration::from_millis(1500));

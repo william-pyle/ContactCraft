@@ -18,6 +18,7 @@ mod theme;
 mod theme_editor;
 mod update;
 mod widgets;
+mod window_chrome;
 
 /// The blue Craft tile and the person silhouette used by the installer and website.
 fn app_icon() -> egui::IconData {
@@ -35,18 +36,18 @@ fn main() -> eframe::Result {
         let options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_title(dialog::title(&req))
+                .with_decorations(false)
                 .with_app_id("ContactCraft.Dialog")
                 .with_inner_size(size)
                 .with_min_inner_size([620.0, 480.0])
                 .with_always_on_top()
-                .with_minimize_button(false)
                 .with_drag_and_drop(true)
                 .with_icon(app_icon()),
             centered: true,
             ..Default::default()
         };
         let result = eframe::run_native("ContactCraft", options, Box::new(move |cc| {
-            let mut app = app::App::new(cc);
+            let mut app = app::App::new(cc, window_chrome::WindowChrome::install(cc)?);
             app.start_dialog(req);
             Ok(Box::new(app))
         }));
@@ -59,6 +60,7 @@ fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("ContactCraft")
+            .with_decorations(false)
             .with_app_id("ContactCraft")
             .with_inner_size([1440.0, 920.0])
             .with_min_inner_size([960.0, 600.0])
@@ -66,5 +68,5 @@ fn main() -> eframe::Result {
             .with_icon(app_icon()),
         ..Default::default()
     };
-    eframe::run_native("ContactCraft", options, Box::new(|cc| Ok(Box::new(app::App::new(cc)))))
+    eframe::run_native("ContactCraft", options, Box::new(|cc| Ok(Box::new(app::App::new(cc, window_chrome::WindowChrome::install(cc)?)))))
 }

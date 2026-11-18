@@ -3,7 +3,7 @@ members = [".", "store"]
 
 [package]
 name = "contactcraft"
-version = "1.2.3"
+version = "1.2.4"
 edition = "2024"
 description = "ContactCraft: contacts and groups on Windows, shared with other applications"
 repository = "https://github.com/william-pyle/ContactCraft"
@@ -25,6 +25,10 @@ chrono = { version = "0.4", default-features = false, features = ["clock", "std"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
 rfd = "0.17"
 ureq = { version = "3", features = ["json"] }
+
+[target.'cfg(windows)'.dependencies]
+raw-window-handle = "0.6"
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_HiDpi", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi"] }
 
 [build-dependencies]
 winresource = "0.1"

@@ -221,7 +221,9 @@ impl App {
         let mut u = ui.new_child(egui::UiBuilder::new().max_rect(body).layout(egui::Layout::top_down(egui::Align::Min)));
         let mut copied = None;
         ScrollArea::vertical().auto_shrink([false, false]).id_salt(("card", c.id.clone())).show(&mut u, |ui| {
-            ui.set_max_width((body.width() - 16.0).min(760.0));
+            // A small window at high zoom can leave the detail pane no space.
+            // Keep egui's layout valid while the window is being resized.
+            ui.set_max_width((body.width() - 16.0).clamp(0.0, 760.0));
             details(ui, &t, &c, &look, &mut copied);
             ui.add_space(16.0);
         });
