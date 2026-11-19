@@ -60,7 +60,9 @@ def contract():
 
 def api(path, binary=False):
     args = ["gh", "api", f"repos/{REPOSITORY}/{path}"]
-    if binary:
+    # Actions ZIP downloads use the JSON API media type for the redirect response.
+    # Only release-asset downloads require octet-stream content negotiation.
+    if binary and path.startswith("releases/assets/"):
         args += ["-H", "Accept: application/octet-stream"]
     result = subprocess.run(args, check=True, stdout=subprocess.PIPE)
     return result.stdout if binary else json.loads(result.stdout)

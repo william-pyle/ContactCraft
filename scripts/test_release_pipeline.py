@@ -201,6 +201,14 @@ class PromotionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Invalid release tag"):
             pipeline.validate_tag(self.commit, "--bad")
 
+    def test_download_headers_follow_endpoint_contract(self):
+        with patch.object(pipeline.subprocess, "run") as run:
+            run.return_value.stdout = b"binary fixture"
+            self.assertEqual(pipeline.api("actions/artifacts/456/zip", binary=True), b"binary fixture")
+            self.assertNotIn("Accept: application/octet-stream", run.call_args.args[0])
+            self.assertEqual(pipeline.api("releases/assets/456", binary=True), b"binary fixture")
+            self.assertIn("Accept: application/octet-stream", run.call_args.args[0])
+
     def test_workflow_contract_and_no_duplicate_release_build(self):
         workflow = (pipeline.ROOT / pipeline.WORKFLOW).read_text(encoding="utf-8-sig")
         self.assertIn('toolchain: "' + pipeline.contract()["toolchain"] + '"', workflow)
