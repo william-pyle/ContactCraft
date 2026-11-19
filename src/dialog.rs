@@ -1,12 +1,12 @@
-//! Dialog mode: other apps start ContactCraft to create or edit a contact or group.
+//! Dialog mode: other apps start ContactSolutions to create or edit a contact or group.
 //!
 //! ```text
-//! ContactCraft.exe --new-contact [--name "Anna Smith"] [--given Anna] [--family Smith]
+//! ContactSolutions.exe --new-contact [--name "Anna Smith"] [--given Anna] [--family Smith]
 //!                  [--phone "+1 555 010 2030"] [--email anna@example.com] [--company Northwind]
 //!                  [--label Friends] [--notes "..."]
-//! ContactCraft.exe --edit-contact <id>
-//! ContactCraft.exe --edit-phone <number>      (edits the contact with that number, or starts a
-//! ContactCraft.exe --edit-email <address>      new one with it filled in)
+//! ContactSolutions.exe --edit-contact <id>
+//! ContactSolutions.exe --edit-phone <number>      (edits the contact with that number, or starts a
+//! ContactSolutions.exe --edit-email <address>      new one with it filled in)
 //! ... [--result-file <path>] [--theme-tab]
 //! ```
 //!
@@ -20,7 +20,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicI32, Ordering};
 
-use contactcraft_store::{Contact, ContactGroup, Email, Labeled};
+use contactsolutions_store::{Contact, ContactGroup, Email, Labeled};
 use egui::{Frame, Margin, Ui};
 
 use crate::app::{App, Pane};
@@ -75,7 +75,7 @@ fn value(args: &[String], flag: &str) -> Option<String> {
     args.get(i + 1).filter(|v| !v.starts_with("--")).cloned()
 }
 
-/// Read the dialog options, if ContactCraft was started to edit one record.
+/// Read the dialog options, if ContactSolutions was started to edit one record.
 pub fn parse(args: &[String]) -> Option<DialogRequest> {
     let mut p = Prefill {
         given: value(args, "--given").unwrap_or_default(),
@@ -121,10 +121,10 @@ pub fn parse(args: &[String]) -> Option<DialogRequest> {
 /// The window title for a request.
 pub fn title(r: &DialogRequest) -> &'static str {
     match r.target {
-        Target::New(_) => "New contact - ContactCraft",
-        Target::NewGroup { .. } => "New group - ContactCraft",
-        Target::EditGroup(_) => "Edit group - ContactCraft",
-        _ => "Edit contact - ContactCraft",
+        Target::New(_) => "New contact - ContactSolutions",
+        Target::NewGroup { .. } => "New group - ContactSolutions",
+        Target::EditGroup(_) => "Edit group - ContactSolutions",
+        _ => "Edit contact - ContactSolutions",
     }
 }
 
@@ -135,7 +135,7 @@ fn new_from(p: &Prefill) -> Contact {
     c.phones.push(Labeled::new("mobile", p.phone.trim()));
     c.emails.push(Email { label: "home".into(), address: p.email.trim().to_string(), display_name: String::new() });
     if !p.company.trim().is_empty() {
-        c.organizations.push(contactcraft_store::Organization { label: "work".into(), company: p.company.trim().to_string(), current: true, ..Default::default() });
+        c.organizations.push(contactsolutions_store::Organization { label: "work".into(), company: p.company.trim().to_string(), current: true, ..Default::default() });
     }
     if !p.label.trim().is_empty() {
         c.labels.push(p.label.trim().to_string());
@@ -197,7 +197,7 @@ impl App {
                 ui.add_space(30.0);
                 ui.vertical_centered(|ui| {
                     let kind = if matches!(self.dialog.as_ref().map(|d| &d.request.target), Some(Target::NewGroup { .. } | Target::EditGroup(_))) { "group" } else { "contact" };
-                    ui.label(egui::RichText::new(format!("ContactCraft couldn't open that {kind}")).font(theme::semibold(18.0)).color(t.text));
+                    ui.label(egui::RichText::new(format!("ContactSolutions couldn't open that {kind}")).font(theme::semibold(18.0)).color(t.text));
                     ui.add_space(6.0);
                     ui.label(egui::RichText::new(e).font(theme::regular(13.0)).color(t.text_dim));
                     ui.add_space(14.0);
@@ -244,7 +244,7 @@ impl App {
             return;
         }
         group.name = name.to_string();
-        if group.id.is_empty() { group.id = contactcraft_store::new_id(); }
+        if group.id.is_empty() { group.id = contactsolutions_store::new_id(); }
         let Some(store) = &self.store else { return };
         let result = (|| {
             if let Some(bytes) = &d.pending_banner { store.set_banner(&mut group.theme, &group.id, bytes)?; }
@@ -308,7 +308,7 @@ mod tests {
 
     #[test]
     fn group_commands_enter_dialog_mode_with_prefill() {
-        let args = ["ContactCraft.exe", "--new-group", "--group-name", "Weekend team", "--group-number", "+1 555 010 2030", "--group-number", "555-0104"]
+        let args = ["ContactSolutions.exe", "--new-group", "--group-name", "Weekend team", "--group-number", "+1 555 010 2030", "--group-number", "555-0104"]
             .map(str::to_string);
         let request = parse(&args).expect("new group should open the editor dialog");
         match request.target {
@@ -319,7 +319,7 @@ mod tests {
             _ => panic!("expected a new group dialog"),
         }
 
-        let args = ["ContactCraft.exe", "--open-group", "group-id"].map(str::to_string);
+        let args = ["ContactSolutions.exe", "--open-group", "group-id"].map(str::to_string);
         assert!(matches!(parse(&args).map(|r| r.target), Some(Target::EditGroup(id)) if id == "group-id"));
     }
 }

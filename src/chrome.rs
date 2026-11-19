@@ -406,7 +406,7 @@ impl App {
                     let ctx = ui.ctx().clone();
                     self.check_for_updates(&ctx, true);
                 }
-                if ribbon_button(ui, &t, Icon::Info, "About ContactCraft", false, true, false).clicked() {
+                if ribbon_button(ui, &t, Icon::Info, "About ContactSolutions", false, true, false).clicked() {
                     self.backstage = Some(Backstage::About);
                 }
             }
@@ -534,7 +534,7 @@ impl App {
                 ui.set_width(420.0);
                 ui.label(egui::RichText::new(format!("Delete {name}?")).font(theme::semibold(17.0)).color(t.text));
                 ui.add(
-                    egui::Label::new(egui::RichText::new("The contact, its picture and its theme are deleted for every Craft app that uses ContactCraft's contacts.").font(theme::regular(13.0)).color(t.text_dim))
+                    egui::Label::new(egui::RichText::new("The contact, its picture and its theme are deleted for every Craft app that uses ContactSolutions's contacts.").font(theme::regular(13.0)).color(t.text_dim))
                         .wrap(),
                 );
                 ui.add_space(8.0);

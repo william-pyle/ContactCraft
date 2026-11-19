@@ -2,7 +2,7 @@
 //! picture shape and emoji, font, text size and colours, background colour or picture, message
 //! bubbles, sounds), with a live preview of their card and a conversation.
 
-use contactcraft_store::{Contact, ContactTheme, labels};
+use contactsolutions_store::{Contact, ContactTheme, labels};
 use egui::{Align2, Color32, CornerRadius, FontId, Margin, Rect, ScrollArea, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
 
 use crate::app::{App, Pane};
@@ -229,7 +229,7 @@ impl App {
             if let Some(path) = rfd::FileDialog::new().set_title("Choose a banner picture").add_filter("Pictures", &["png", "jpg", "jpeg", "gif", "webp"]).pick_file() {
                 match std::fs::read(&path) {
                     Ok(bytes) => {
-                        if c.id.is_empty() { c.id = contactcraft_store::new_id(); }
+                        if c.id.is_empty() { c.id = contactsolutions_store::new_id(); }
                         if let Some(store) = &self.store {
                             if let Err(e) = store.set_banner(&mut c.theme, &c.id, &bytes) { self.notify(e, true); }
                         }
@@ -258,7 +258,7 @@ impl App {
             if let Some(path) = rfd::FileDialog::new().set_title("Choose a font file").add_filter("Fonts", &["ttf", "otf", "ttc"]).pick_file() {
                 let ok = std::fs::read(&path).map(|b| theme::looks_like_font(&b)).unwrap_or(false);
                 if !ok {
-                    self.notify("That file isn't a font ContactCraft can read.", true);
+                    self.notify("That file isn't a font ContactSolutions can read.", true);
                 } else if let Some(store) = &self.store {
                     c.theme.font.clear();
                     if let Err(e) = store.add_font(&mut c, &path) {

@@ -32,7 +32,7 @@ impl Smoke {
             "Native checks require demo data"
         );
         let dir = PathBuf::from(
-            std::env::var_os("CONTACTCRAFT_CHROME_CHECK_DIR").expect("Isolated output directory"),
+            std::env::var_os("CONTACTSOLUTIONS_CHROME_CHECK_DIR").expect("Isolated output directory"),
         );
         let profile = PathBuf::from(std::env::var_os("APPDATA").expect("Isolated APPDATA"));
         assert!(profile.starts_with(&dir), "Do not use the real app profile");

@@ -1,6 +1,6 @@
 # Notices
 
-ContactCraft is released under the MIT License (see LICENSE). Copyright (c) 2026 William Pyle.
+ContactSolutions is released under the MIT License (see LICENSE). Copyright (c) 2026 William Pyle.
 
 - Its look (palette, type scale, widget metrics, layout) follows MailCraft's design
   (MIT OR Apache-2.0), shared with MessageCraft.

@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-  Build ContactCraft's Windows installer (MSI) from the program in dist\.
+  Build ContactSolutions's Windows installer (MSI) from the program in dist\.
 
 .DESCRIPTION
   Run build.ps1 first (it calls this script itself when WiX is available). Produces
-  dist\ContactCraft-windows-x64.msi: a per-machine installer into Program Files with a Start Menu
+  dist\ContactSolutions-windows-x64.msi: a per-machine installer into Program Files with a Start Menu
   shortcut, like MailCraft's and MessageCraft's.
 
   Needs WiX v5 with its UI and Util extensions, found in this order:
@@ -53,16 +53,16 @@ foreach ($ch in $escaped.ToCharArray()) {
     elseif ($code -gt 127) { [void]$sb.Append("\u$code?") }
     else { [void]$sb.Append($ch) }
 }
-$rtfPath = Join-Path $env:TEMP 'contactcraft-license.rtf'
+$rtfPath = Join-Path $env:TEMP 'contactsolutions-license.rtf'
 "{\rtf1\ansi\deff0{\fonttbl{\f0 Segoe UI;}}\fs18 $($sb.ToString())}" | Set-Content -Path $rtfPath -Encoding ascii
 
-$msi = Join-Path $dist 'ContactCraft-windows-x64.msi'
+$msi = Join-Path $dist 'ContactSolutions-windows-x64.msi'
 if (Test-Path $msi) { Remove-Item $msi -Force }
-& $wixExe build (Join-Path $here 'contactcraft.wxs') -arch x64 `
+& $wixExe build (Join-Path $here 'contactsolutions.wxs') -arch x64 `
     -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
     -d "Version=$msiVersion" -d "BinDir=$dist" `
-    -d "IconPath=$(Join-Path $root 'assets\contactcraft.ico')" -d "LicenseRtf=$rtfPath" `
+    -d "IconPath=$(Join-Path $root 'assets\contactsolutions.ico')" -d "LicenseRtf=$rtfPath" `
     -o $msi
 if ($LASTEXITCODE -ne 0) { throw 'The installer failed to build.' }
-Remove-Item (Join-Path $dist 'ContactCraft-windows-x64.wixpdb') -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $dist 'ContactSolutions-windows-x64.wixpdb') -ErrorAction SilentlyContinue
 Write-Host "Installer: $msi"

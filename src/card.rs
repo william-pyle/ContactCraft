@@ -1,7 +1,7 @@
 //! The contact card: the theme's banner and background, the picture, and every detail the
 //! contact holds, in sections. Also the theme painting the theme editor's preview shares.
 
-use contactcraft_store::{Contact, ContactTheme};
+use contactsolutions_store::{Contact, ContactTheme};
 use egui::{Align2, Color32, CornerRadius, FontFamily, FontId, Rect, ScrollArea, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
 
 use crate::app::{App, Pane};

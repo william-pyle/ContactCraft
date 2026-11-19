@@ -1,4 +1,4 @@
-//! ContactCraft: your contacts on Windows, shared with every Craft app, in the MailCraft style.
+//! ContactSolutions: your contacts on Windows, shared with every Craft app, in the MailCraft style.
 
 #![windows_subsystem = "windows"]
 
@@ -22,8 +22,8 @@ mod window_chrome;
 
 /// The blue Craft tile and the person silhouette used by the installer and website.
 fn app_icon() -> egui::IconData {
-    let img = image::load_from_memory(include_bytes!("../assets/contactcraft-256.png"))
-        .expect("ContactCraft icon PNG").to_rgba8();
+    let img = image::load_from_memory(include_bytes!("../assets/contactsolutions-256.png"))
+        .expect("ContactSolutions icon PNG").to_rgba8();
     egui::IconData { rgba: img.as_raw().clone(), width: img.width(), height: img.height() }
 }
 
@@ -37,7 +37,7 @@ fn main() -> eframe::Result {
             viewport: egui::ViewportBuilder::default()
                 .with_title(dialog::title(&req))
                 .with_decorations(false)
-                .with_app_id("ContactCraft.Dialog")
+                .with_app_id("ContactSolutions.Dialog")
                 .with_inner_size(size)
                 .with_min_inner_size([620.0, 480.0])
                 .with_always_on_top()
@@ -46,7 +46,7 @@ fn main() -> eframe::Result {
             centered: true,
             ..Default::default()
         };
-        let result = eframe::run_native("ContactCraft", options, Box::new(move |cc| {
+        let result = eframe::run_native("ContactSolutions", options, Box::new(move |cc| {
             let mut app = app::App::new(cc, window_chrome::WindowChrome::install(cc)?);
             app.start_dialog(req);
             Ok(Box::new(app))
@@ -59,14 +59,14 @@ fn main() -> eframe::Result {
     }
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title("ContactCraft")
+            .with_title("ContactSolutions")
             .with_decorations(false)
-            .with_app_id("ContactCraft")
+            .with_app_id("ContactSolutions")
             .with_inner_size([1440.0, 920.0])
             .with_min_inner_size([960.0, 600.0])
             .with_drag_and_drop(true)
             .with_icon(app_icon()),
         ..Default::default()
     };
-    eframe::run_native("ContactCraft", options, Box::new(|cc| Ok(Box::new(app::App::new(cc, window_chrome::WindowChrome::install(cc)?)))))
+    eframe::run_native("ContactSolutions", options, Box::new(|cc| Ok(Box::new(app::App::new(cc, window_chrome::WindowChrome::install(cc)?)))))
 }

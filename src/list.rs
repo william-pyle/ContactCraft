@@ -29,7 +29,7 @@ impl App {
         let mut pick = None;
         ScrollArea::vertical().auto_shrink([false, false]).id_salt("labels").show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = 1.0;
-            heading(ui, &t, "CONTACTCRAFT");
+            heading(ui, &t, "CONTACTSOLUTIONS");
             for ((f, icon, label), count) in fixed.iter().zip(counts) {
                 if row(ui, &t, *icon, label, count, self.filter == *f, *f == Filter::All).clicked() {
                     pick = Some(f.clone());
@@ -106,7 +106,7 @@ impl App {
             ui.vertical_centered(|ui| ui.label(egui::RichText::new("The contacts couldn't be opened.").font(theme::regular(13.0)).color(t.text_dim)));
             return;
         }
-        let shown: Vec<contactcraft_store::Contact> = self.shown().into_iter().cloned().collect();
+        let shown: Vec<contactsolutions_store::Contact> = self.shown().into_iter().cloned().collect();
         if shown.is_empty() {
             ui.add_space(40.0);
             ui.vertical_centered(|ui| {
@@ -275,7 +275,7 @@ impl App {
 }
 
 /// The second line of a list row: job and company, else a phone number or an email address.
-fn sub_line(c: &contactcraft_store::Contact) -> String {
+fn sub_line(c: &contactsolutions_store::Contact) -> String {
     let role = [c.job_title(), c.company()].iter().filter(|s| !s.is_empty()).copied().collect::<Vec<_>>().join(", ");
     if !role.is_empty() && role != c.display_name() {
         return role;

@@ -7,8 +7,8 @@
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use contactcraft_store::Contact;
-use contactcraft_store::cleanup::{self, Options};
+use contactsolutions_store::Contact;
+use contactsolutions_store::cleanup::{self, Options};
 use egui::{Rect, ScrollArea, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
 
 use crate::app::App;
@@ -38,7 +38,7 @@ pub struct MergeSession {
     pub kept: usize,
 }
 
-const NOT_DUPES: &str = "contactcraft.notDuplicates";
+const NOT_DUPES: &str = "contactsolutions.notDuplicates";
 
 enum MergeAction {
     Merge,
@@ -87,7 +87,7 @@ impl App {
         let store = self.store.as_ref().ok_or("The contact store isn't open.")?;
         let dir = self.backups_dir().unwrap().join(format!("before-cleanup-{}", chrono::Local::now().format("%Y%m%d-%H%M%S")));
         std::fs::create_dir_all(dir.join("photos")).map_err(|e| e.to_string())?;
-        let json = serde_json::to_string_pretty(&serde_json::json!({"format": "contactcraft", "version": 1, "contacts": self.contacts})).map_err(|e| e.to_string())?;
+        let json = serde_json::to_string_pretty(&serde_json::json!({"format": "contactsolutions", "version": 1, "contacts": self.contacts})).map_err(|e| e.to_string())?;
         std::fs::write(dir.join("contacts.json"), json).map_err(|e| e.to_string())?;
         for c in &self.contacts {
             if let Some(p) = store.photo_path(c) {

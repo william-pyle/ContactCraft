@@ -43,7 +43,7 @@ mod native {
             cc: &eframe::CreationContext<'_>,
         ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
             let RawWindowHandle::Win32(handle) = cc.window_handle()?.as_raw() else {
-                return Err("ContactCraft requires a Windows window".into());
+                return Err("ContactSolutions requires a Windows window".into());
             };
             let state = Box::new(State {
                 hwnd: Cell::new(handle.hwnd.get() as HWND),

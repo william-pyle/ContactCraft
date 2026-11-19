@@ -2,21 +2,21 @@
 members = [".", "store"]
 
 [package]
-name = "contactcraft"
-version = "1.2.4"
+name = "contactsolutions"
+version = "1.3.0"
 edition = "2024"
-description = "ContactCraft: contacts and groups on Windows, shared with other applications"
-repository = "https://github.com/william-pyle/ContactCraft"
+description = "ContactSolutions: contacts and groups on Windows, shared with other applications"
+repository = "https://github.com/william-pyle/ContactSolutions"
 license = "MIT"
 publish = false
 build = "build.rs"
 
 [[bin]]
-name = "ContactCraft"
+name = "ContactSolutions"
 path = "src/main.rs"
 
 [dependencies]
-contactcraft-store = { path = "store" }
+contactsolutions-store = { path = "store" }
 eframe = { version = "0.37", default-features = false, features = ["default_fonts", "wgpu", "accesskit", "clipboard"] }
 egui = "0.37"
 serde = { version = "1", features = ["derive"] }

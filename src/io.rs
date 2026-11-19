@@ -1,10 +1,10 @@
 //! Bringing contacts in from files (Google Contacts' CSV, Outlook's CSV, vCard from anywhere,
-//! ContactCraft's own JSON) and writing them out again.
+//! ContactSolutions's own JSON) and writing them out again.
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use contactcraft_store::{Contact, ContactGroup, GroupMember, csv, vcard};
+use contactsolutions_store::{Contact, ContactGroup, GroupMember, csv, vcard};
 
 use crate::app::{App, ImportPreview};
 use crate::theme;
@@ -26,7 +26,7 @@ pub fn read_contacts_file(path: &Path) -> Result<ImportData, String> {
     if head.starts_with('[') || head.starts_with('{') {
         let v: serde_json::Value = serde_json::from_str(head).map_err(|e| format!("That JSON file couldn't be read: {e}"))?;
         let list = v.get("contacts").cloned().unwrap_or_else(|| v.clone());
-        let items: Vec<Contact> = serde_json::from_value(list).map_err(|e| format!("That file isn't a ContactCraft export: {e}"))?;
+        let items: Vec<Contact> = serde_json::from_value(list).map_err(|e| format!("That file isn't a ContactSolutions export: {e}"))?;
         let groups: Vec<ContactGroup> = v.get("groups").cloned().map(serde_json::from_value).transpose().map_err(|e| format!("The groups in that file couldn't be read: {e}"))?.unwrap_or_default();
         return Ok(ImportData { contacts: items
             .into_iter()
@@ -58,7 +58,7 @@ impl App {
             .add_filter("Contacts files", &["vcf", "vcard", "csv", "json"])
             .add_filter("vCard (Google, Apple, Outlook)", &["vcf", "vcard"])
             .add_filter("CSV (Google CSV, Outlook CSV)", &["csv"])
-            .add_filter("ContactCraft export", &["json"])
+            .add_filter("ContactSolutions export", &["json"])
             .pick_file()
         {
             self.read_import_file(&path);
@@ -209,13 +209,13 @@ impl App {
         }
         let (filter, ext, default) = match kind {
             "csv" => ("Google CSV", "csv", "contacts-google.csv"),
-            "json" => ("ContactCraft (everything)", "json", "contacts-contactcraft.json"),
+            "json" => ("ContactSolutions (everything)", "json", "contacts-contactsolutions.json"),
             _ => ("vCard", "vcf", "contacts.vcf"),
         };
         let Some(path) = rfd::FileDialog::new().set_title("Export contacts").add_filter(filter, &[ext]).set_file_name(default).save_file() else { return };
         let text = match kind {
             "csv" => csv::export_google(&list),
-            "json" => serde_json::to_string_pretty(&serde_json::json!({"format": "contactcraft", "version": 2, "contacts": list, "groups": if only_shown { Vec::new() } else { self.groups.clone() }})).unwrap_or_default(),
+            "json" => serde_json::to_string_pretty(&serde_json::json!({"format": "contactsolutions", "version": 2, "contacts": list, "groups": if only_shown { Vec::new() } else { self.groups.clone() }})).unwrap_or_default(),
             _ => {
                 let store = self.store.as_ref();
                 vcard::export(&list, |c| store.and_then(|s| s.photo_path(c)).and_then(|p| std::fs::read(p).ok()))
@@ -236,12 +236,22 @@ pub fn exe_dir() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::read_contacts_file;
-    use contactcraft_store::GroupMember;
+    use contactsolutions_store::GroupMember;
 
     #[test]
-    fn reads_groups_from_contactcraft_json() {
-        let path = std::env::temp_dir().join(format!("contactcraft-import-groups-{}.json", std::process::id()));
-        std::fs::write(&path, r#"{"format":"contactcraft","version":2,"contacts":[],"groups":[{"id":"g1","name":"Team","members":[{"kind":"number","number":"555-0101"}]}]}"#).unwrap();
+    fn reads_legacy_json_without_changing_contact_or_group_ids() {
+        let path = std::env::temp_dir().join(format!("contactsolutions-legacy-{}.json", contactsolutions_store::new_id()));
+        std::fs::write(&path, r#"{"format":"contactcraft","version":2,"contacts":[{"id":"retained-contact"}],"groups":[{"id":"retained-group","name":"Fixture"}]}"#).unwrap();
+        let data = read_contacts_file(&path).unwrap();
+        assert_eq!(data.contacts[0].0.id, "retained-contact");
+        assert_eq!(data.groups[0].id, "retained-group");
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn reads_groups_from_contactsolutions_json() {
+        let path = std::env::temp_dir().join(format!("contactsolutions-import-groups-{}.json", std::process::id()));
+        std::fs::write(&path, r#"{"format":"contactsolutions","version":2,"contacts":[],"groups":[{"id":"g1","name":"Team","members":[{"kind":"number","number":"555-0101"}]}]}"#).unwrap();
         let data = read_contacts_file(&path).unwrap();
         assert!(data.contacts.is_empty());
         assert_eq!(data.groups.len(), 1);

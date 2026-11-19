@@ -1,15 +1,18 @@
-# ContactCraft
+# ContactSolutions
 
 **Your contacts and contact groups on Windows, with details, pictures and themes shared with
 other applications.**
 
-ContactCraft is a Windows contacts manager in the Craft family's style (the look of MailCraft and
+ContactSolutions is a Windows contacts manager in the Craft family's style (the look of MailCraft and
 MessageCraft). It keeps everything Google Contacts, Outlook, Apple Contacts and vCard can hold
 about a person, plus anything else you want to add. It also keeps a picture and a theme for each
-person. MessageCraft, MailCraft and any other Craft app read and change the same contacts
-directly, whether ContactCraft is running or not.
+person. Integrating applications can read and change the same contacts directly.
+Existing MailCraft and MessageCraft versions require separate migrations to the renamed store.
 
-[**Download the latest release**](https://github.com/william-pyle/ContactCraft/releases/latest)
+**1.3.0 is unreleased.** The latest published release is ContactCraft v1.2.4; its historical
+asset names remain unchanged. The ContactSolutions package names below describe the next build.
+
+[**Download the latest published release**](https://github.com/william-pyle/ContactSolutions/releases/latest)
 
 ---
 
@@ -58,7 +61,7 @@ directly, whether ContactCraft is running or not.
   - **Your own fields** at any time: give a field a name and a kind (text, number, date, link,
     email, phone or yes/no).
   - Labels (Google's contact groups, Outlook's categories), notes and favourites.
-  - Anything another program writes that ContactCraft doesn't know is kept as it is and shown
+  - Anything another program writes that ContactSolutions doesn't know is kept as it is and shown
     under "From other apps", so nothing is ever lost.
 - **A picture** for each contact: choose one or drop it on the window. Shown round, rounded or
   square.
@@ -69,12 +72,12 @@ directly, whether ContactCraft is running or not.
 - **Contact groups** with a name, a standard theme and any mix of saved contacts and phone
   numbers. Other applications can add groups through the shared store.
 - **Import** from Google Contacts (vCard or Google CSV), Outlook (CSV), iPhone or Mac (vCard), or
-  ContactCraft's own file. It can skip contacts you already have and label what came in.
-- **Export** to vCard, Google CSV or ContactCraft's own file.
+  ContactSolutions's own file. It can skip contacts you already have and label what came in.
+- **Export** to vCard, Google CSV or ContactSolutions's own file.
 - **Clean Up**: names in proper case without stray symbols, phone numbers and addresses in one
   standard format, repeated emails and numbers removed, and duplicate contacts found and merged.
   A backup is saved first, and the clean-up can be undone.
-- **Shared with Craft apps**: one database every Craft app can open, whether ContactCraft is
+- **Shared with Craft apps**: one database every Craft app can open, whether ContactSolutions is
   running or not.
 - **Updates**: checks GitHub for a new release when it starts, and downloads and installs it if
   you agree.
@@ -83,24 +86,24 @@ directly, whether ContactCraft is running or not.
 
 ## Installing
 
-1. Download **`ContactCraft-windows-x64.msi`** from the
-   [latest release](https://github.com/william-pyle/ContactCraft/releases/latest) and run it.
+1. Download **`ContactSolutions-windows-x64.msi`** from the
+   [latest release](https://github.com/william-pyle/ContactSolutions/releases/latest) and run it.
    Like the other Craft apps' installers, it installs into Program Files, adds a Start Menu
-   shortcut, and offers to launch ContactCraft when it finishes.
-2. ContactCraft isn't code-signed yet, so Windows SmartScreen may warn the first time. Choose
+   shortcut, and offers to launch ContactSolutions when it finishes.
+2. ContactSolutions isn't code-signed yet, so Windows SmartScreen may warn the first time. Choose
    **More info › Run anyway**.
 
-*Portable instead:* download `ContactCraft-windows.zip`, unzip it anywhere and run
-`ContactCraft.exe`. Both versions use the same contacts.
+*Portable instead:* download `ContactSolutions-windows.zip`, unzip it anywhere and run
+`ContactSolutions.exe`. Both versions use the same contacts.
 
-To remove ContactCraft, use Windows **Settings › Apps**. Your contacts stay in
-`%APPDATA%\ContactCraft` until you delete that folder yourself.
+To remove ContactSolutions, use Windows **Settings › Apps**. Your contacts stay in
+`%APPDATA%\ContactSolutions` until you delete that folder yourself.
 
 Requirements: Windows 10 or 11, 64-bit.
 
 ## Getting started
 
-Open **ContactCraft** from the Start menu.
+Open **ContactSolutions** from the Start menu.
 
 - **New Contact** (or Ctrl+N) opens the editor on a new contact.
 - **Import** brings in a file from Google Contacts or Outlook (see below).
@@ -111,7 +114,7 @@ Open **ContactCraft** from the Start menu.
 - The search box at the top searches names, companies, emails, phone numbers (in any format),
   addresses, labels, relationships, your own fields and notes.
 
-To look around first with made-up contacts (nothing is saved), run `ContactCraft.exe --demo`.
+To look around first with made-up contacts (nothing is saved), run `ContactSolutions.exe --demo`.
 
 The top toolbar also controls the window: click the app icon for the Windows system menu,
 drag empty space to move, or double-click empty space to maximize/restore. Resize using any
@@ -121,9 +124,9 @@ closing a dialog cancels it. At narrow widths, Sharing remains available as an i
 
 ## Importing your contacts
 
-Click **Import** (or drop a file on the window). ContactCraft shows how many contacts the file
+Click **Import** (or drop a file on the window). ContactSolutions shows how many contacts the file
 holds and a few names. You can skip contacts you already have (same email, phone or name) and
-give everything that comes in a label. Columns ContactCraft has no field for become your own
+give everything that comes in a label. Columns ContactSolutions has no field for become your own
 fields, so nothing in the file is dropped.
 
 **From Google Contacts**
@@ -131,7 +134,7 @@ fields, so nothing in the file is dropped.
 1. Open [contacts.google.com](https://contacts.google.com) and sign in.
 2. Select the contacts to bring (or none, for all), then choose **Export**.
 3. Pick **vCard** (keeps pictures) or **Google CSV**, then **Export**.
-4. In ContactCraft, click **Import** and choose the downloaded file.
+4. In ContactSolutions, click **Import** and choose the downloaded file.
 
 **From Outlook**
 
@@ -150,13 +153,13 @@ vCard**, and import the `.vcf` file. Pictures come along.
 Addresses, Work, Web and social, Dates, Relationships, Personal, IDs/places/calendars/keys,
 Outlook details, Your own fields, and Labels and notes. Every list grows with **Add...** and each
 entry has a label menu with the standard labels plus room for your own. **Save** (Ctrl+S) stores
-the contact; ContactCraft asks before throwing away unsaved changes.
+the contact; ContactSolutions asks before throwing away unsaved changes.
 
 ## Contact groups
 
 Click **New Group** on the Home ribbon or **New group** in the left pane. Give the group a name,
 then use **Add contact** or **Add number**. Remove a member with **Remove**; this does not delete
-the contact. A number-only member does not need a matching ContactCraft contact. Group changes are
+the contact. A number-only member does not need a matching ContactSolutions contact. Group changes are
 saved as you make them, and other applications can see them through the shared store. Deleting a
 contact keeps its phone numbers in its groups as number-only members.
 Labels imported with contacts remain labels; they do not automatically create group records.
@@ -180,7 +183,7 @@ conversation:
 
 Start from one of the ready-made looks (Ocean, Sunset, Forest, Berry, Midnight, Slate, Gold,
 Plain), or **Reset theme** to go back to the plain look. Fonts, banner pictures and
-background pictures you add are copied into ContactCraft's data folder, so every Craft app can use them.
+background pictures you add are copied into ContactSolutions's data folder, so every Craft app can use them.
 
 ## Clean Up and duplicates
 
@@ -211,7 +214,7 @@ contacts or only the ones shown:
      people, so they aren't suggested again.
 
 Before anything changes, a copy of every contact and picture is saved in
-`%APPDATA%\ContactCraft\backups`. **Undo the last clean-up** (in the Clean Up window) puts every
+`%APPDATA%\ContactSolutions\backups`. **Undo the last clean-up** (in the Clean Up window) puts every
 contact back as it was. Contacts added since stay.
 
 ## Exporting
@@ -219,9 +222,9 @@ contact back as it was. Contacts added since stay.
 **Export** (or File › Export) saves all contacts, or only the ones shown, as:
 
 - **vCard (.vcf)**: for Google Contacts, Outlook, iPhone and almost everything else. Keeps
-  pictures, and carries every ContactCraft field and theme for another ContactCraft.
+  pictures, and carries every ContactSolutions field and theme for another ContactSolutions.
 - **Google CSV (.csv)**: the spreadsheet Google Contacts imports.
-- **ContactCraft file (.json)**: contact and group records, including group membership and theme
+- **ContactSolutions file (.json)**: contact and group records, including group membership and theme
   settings. The file does not embed picture or font files; back up the data folder to keep those.
   Exporting only the contacts currently shown omits groups.
 
@@ -233,27 +236,27 @@ couple of seconds. Contact groups live in the same store, with contacts and numb
 Each contact carries its picture and theme, so a person looks the same in every app.
 
 - For developers: [docs/shared-contacts.md](docs/shared-contacts.md) describes the
-  `contactcraft-store` Rust crate (in `store/`) and the database layout.
+  `contactsolutions-store` Rust crate (in `store/`) and the database layout.
 - [docs/messagecraft-ai-instructions.md](docs/messagecraft-ai-instructions.md) is a ready-made
-  brief to give an AI coding agent so it connects MessageCraft (or MailCraft) to ContactCraft's
+  brief to give an AI coding agent so it connects MessageCraft (or MailCraft) to ContactSolutions's
   contacts: finding, showing, changing and adding them, and using their pictures and themes.
 
 ## Command line for other apps
 
-Other apps can ask ContactCraft to create or edit one contact or group. ContactCraft then opens a
+Other apps can ask ContactSolutions to create or edit one contact or group. ContactSolutions then opens a
 small window that stays on top of other windows and shows only the editor. **Save** stores the
 record and closes the window; **Cancel** or closing the window closes it without saving.
 
 ```text
-ContactCraft.exe --new-contact [--name "Anna Smith"] [--given Anna] [--family Smith]
+ContactSolutions.exe --new-contact [--name "Anna Smith"] [--given Anna] [--family Smith]
                  [--phone "+1 555 010 2030"] [--email anna@example.com] [--company Northwind]
                  [--label Friends] [--notes "Met at the conference"]
-ContactCraft.exe --edit-contact <id>
-ContactCraft.exe --edit-phone "<number>"     edits the contact with that number (any format),
+ContactSolutions.exe --edit-contact <id>
+ContactSolutions.exe --edit-phone "<number>"     edits the contact with that number (any format),
                                              or starts a new one with it filled in
-ContactCraft.exe --edit-email <address>      the same, by email address
-ContactCraft.exe --open-group <id>            edit an existing group in a dialog
-ContactCraft.exe --new-group --group-name "Weekend team"
+ContactSolutions.exe --edit-email <address>      the same, by email address
+ContactSolutions.exe --open-group <id>            edit an existing group in a dialog
+ContactSolutions.exe --new-group --group-name "Weekend team"
                  [--group-number "+1 555 010 2030" ...]
 Add to any of them:
   --result-file "<path>"   write the outcome as JSON
@@ -269,17 +272,17 @@ How the calling app learns what happened:
 | Standard output | `saved <id>` | `cancelled` | `error <message>` |
 | `--result-file` | `{"status": "saved", "id": "...", "displayName": "..."}` | `{"status": "cancelled"}` | `{"status": "error", "message": "..."}` |
 
-To find `ContactCraft.exe`, use `Store::contactcraft_exe()` in the `contactcraft-store` crate.
-ContactCraft records its own location in the shared store each time it starts, and the standard
-install folder (`C:\Program Files\ContactCraft`) is tried too. A running ContactCraft window
+To find `ContactSolutions.exe`, use `Store::contactsolutions_exe()` in the `contactsolutions-store` crate.
+ContactSolutions records its own location in the shared store each time it starts, and the standard
+install folder (`C:\Program Files\ContactSolutions`) is tried too. A running ContactSolutions window
 shows the change within a couple of seconds.
 ## Updates
 
-When ContactCraft starts, it asks GitHub for the latest release of this repository. If it's newer
-than the copy you're running, ContactCraft shows what's new and offers to:
+When ContactSolutions starts, it asks GitHub for the latest release of this repository. If it's newer
+than the copy you're running, ContactSolutions shows what's new and offers to:
 
 - **Download and install**: it downloads the installer with a progress bar, then **Install now**
-  closes ContactCraft and runs the installer, which replaces the old version. Your contacts aren't
+  closes ContactSolutions and runs the installer, which replaces the old version. Your contacts aren't
   touched.
 - **Later**: it asks again next time (a link in the status bar brings the prompt back).
 - **Skip this version**: it doesn't ask about that version again.
@@ -290,8 +293,9 @@ you or your contacts is sent.
 
 ## Where your data is kept
 
-Everything is in `%APPDATA%\ContactCraft` (or the folder the `CONTACTCRAFT_DATA` environment
-variable names):
+Shared data is in `%APPDATA%\ContactSolutions`, or the folder named by
+`CONTACTSOLUTIONS_DATA`. UI settings always stay in `%APPDATA%\ContactSolutions`,
+independent of that store override:
 
 | Path | What it is |
 | --- | --- |
@@ -300,9 +304,10 @@ variable names):
 | `backgrounds\` | Theme banner and background pictures |
 | `fonts\` | Font files themes use that aren't Windows' own |
 | `backups\` | A copy of every contact and picture from before each clean-up |
-| `contactcraft-ui.json` | ContactCraft's own window settings |
+| `contactsolutions-ui.json` | ContactSolutions's own window settings |
 
-Back up this folder to keep everything. **File › Info › Open the folder** opens it.
+See [rename migration and recovery](docs/rename-migration.md) before the first renamed-app startup.
+Back up both the data folder and settings profile when using a custom store. **File › Info › Open the folder** opens it.
 
 ## Keyboard
 
@@ -323,7 +328,7 @@ spacing (one line per contact), sort by last name, and the update check.
 
 | Argument | What it does |
 | --- | --- |
-| `--demo` | Made-up contacts in a temporary folder, removed when ContactCraft closes |
+| `--demo` | Made-up contacts in a temporary folder, removed when ContactSolutions closes |
 | `--light` / `--dark` | Start in that appearance |
 | `--edit` / `--theme` | (demo) open the first contact in the editor or theme editor |
 | `--cleanup` / `--cleanup-run` | (demo) open Clean Up, or run it straight away |
@@ -349,13 +354,13 @@ npm run build
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
-`build.ps1` runs the workspace tests (including window hit testing), builds `ContactCraft.exe` in release mode, and writes to
+`build.ps1` runs the workspace tests (including window hit testing), builds `ContactSolutions.exe` in release mode, and writes to
 `dist\`:
 
-- `ContactCraft.exe`
-- `ContactCraft-windows-x64.msi`: the installer (`packaging/windows/package.ps1` with
-  `contactcraft.wxs`)
-- `ContactCraft-windows.zip`: the portable version
+- `ContactSolutions.exe`
+- `ContactSolutions-windows-x64.msi`: the installer (`packaging/windows/package.ps1` with
+  `contactsolutions.wxs`)
+- `ContactSolutions-windows.zip`: the portable version
 - `index.html`, `help.html`: the download page
 - the guides and notices
 
@@ -370,7 +375,7 @@ monitors with different DPI. At minimum size with high app zoom, the existing co
 can overflow; the window toolbar stays available.
 
 The installer takes its version from `Cargo.toml`, so the program, the update check and the
-installer always agree. Its UpgradeCode is ContactCraft's own: a newer MSI replaces an older one
+installer always agree. Its UpgradeCode is ContactSolutions's own: a newer MSI replaces an older one
 in place.
 
 ## Making a release
@@ -387,7 +392,7 @@ in place.
 3. The **Build** workflow (`.github/workflows/build.yml`) builds and tests on Windows, makes the
    installer and the zip, and publishes a GitHub Release with both attached. The tag must match
    the version in `Cargo.toml`.
-4. Copies of ContactCraft that are already installed see the new release the next time they
+4. Copies of ContactSolutions that are already installed see the new release the next time they
    start, and offer to install it.
 
 Every push to `main` and every pull request is built as well; the files are kept as a workflow
@@ -396,7 +401,7 @@ artifact.
 ## Project layout
 
 ```
-ContactCraft/
+ContactSolutions/
 ├── src/                     the window (Rust, egui/eframe)
 │   ├── app.rs               state, settings, loading, pictures and fonts
 │   ├── chrome.rs            title bar, ribbon, rail, status bar, dialogs
@@ -411,7 +416,7 @@ ContactCraft/
 │   ├── update.rs            the update check, download and install
 │   ├── dialog.rs            contact and group editor windows other apps open
 │   └── theme.rs, icons.rs, widgets.rs   the Craft look
-├── store/                   contactcraft-store: the shared contact library
+├── store/                   contactsolutions-store: the shared contact library
 │   ├── src/model.rs         contacts, groups and their themes
 │   ├── src/store.rs         the SQLite store, groups, pictures and theme files
 │   ├── src/vcard.rs         vCard in and out
@@ -426,12 +431,12 @@ ContactCraft/
 
 ## Troubleshooting
 
-- **SmartScreen warns about the installer.** ContactCraft isn't code-signed yet; choose
+- **SmartScreen warns about the installer.** ContactSolutions isn't code-signed yet; choose
   **More info › Run anyway**.
 - **An import found no contacts.** Export from Google as *Google CSV* or *vCard*, or from Outlook
   as a *CSV* file. A file exported as *Outlook CSV* from Google also works.
 - **A theme font shows App Default instead.** The font file isn't on this computer: add it
-  with **Another font file…** in the theme editor, so it's copied into ContactCraft's data
+  with **Another font file…** in the theme editor, so it's copied into ContactSolutions's data
   folder.
 - **The update check says it couldn't check.** The computer is offline, or GitHub couldn't be
   reached; try **Help › Check for Updates** later, or download from the Releases page.

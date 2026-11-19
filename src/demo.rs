@@ -1,7 +1,7 @@
-//! Made-up contacts for `ContactCraft.exe --demo` (kept in a temporary folder, never the real
+//! Made-up contacts for `ContactSolutions.exe --demo` (kept in a temporary folder, never the real
 //! store).
 
-use contactcraft_store::{Address, Contact, ContactTheme, CustomField, Email, Labeled, Organization};
+use contactsolutions_store::{Address, Contact, ContactTheme, CustomField, Email, Labeled, Organization};
 
 use crate::app::App;
 

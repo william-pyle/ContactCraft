@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use contactcraft_store::{Contact, ContactGroup, GroupMember, Store};
+use contactsolutions_store::{Contact, ContactGroup, GroupMember, Store};
 use egui::{ColorImage, TextureHandle};
 use serde::{Deserialize, Serialize};
 
@@ -22,13 +22,15 @@ pub enum Appearance {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
+    #[serde(flatten)]
+    pub extra: std::collections::BTreeMap<String, serde_json::Value>,
     pub appearance: Appearance,
     pub zoom: u16,
     pub label_pane: bool,
     pub tighter: bool,
     /// Sort by family name ("Smith, Anna") instead of the displayed name.
     pub sort_by_family: bool,
-    /// Look for a new version on GitHub when ContactCraft starts.
+    /// Look for a new version on GitHub when ContactSolutions starts.
     pub check_updates: bool,
     /// A version the person chose to skip.
     pub skip_version: String,
@@ -36,7 +38,7 @@ pub struct Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { appearance: Appearance::System, zoom: 100, label_pane: true, tighter: false, sort_by_family: false, check_updates: true, skip_version: String::new() }
+        Settings { extra: Default::default(), appearance: Appearance::System, zoom: 100, label_pane: true, tighter: false, sort_by_family: false, check_updates: true, skip_version: String::new() }
     }
 }
 
@@ -117,6 +119,7 @@ pub struct App {
     pub ribbon: RibbonTab,
     pub backstage: Option<Backstage>,
     pub settings: Settings,
+    settings_path: Option<PathBuf>,
     pub notice: Option<Notice>,
     pub focus_search: bool,
     pub import: Option<ImportPreview>,
@@ -137,12 +140,12 @@ pub struct App {
     font_defs: egui::FontDefinitions,
 }
 
-const SETTINGS_FILE: &str = "contactcraft-ui.json";
-
-pub fn settings_dir() -> PathBuf {
-    let d = std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".")).join("ContactCraft");
-    let _ = std::fs::create_dir_all(&d);
-    d
+fn load_settings(path: &Path) -> Result<Settings, String> {
+    match std::fs::read(path) {
+        Ok(bytes) => serde_json::from_slice(&bytes).map_err(|e| format!("Settings could not be read; the original is preserved: {e}")),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Settings::default()),
+        Err(e) => Err(format!("Settings could not be read; the original is preserved: {e}")),
+    }
 }
 
 impl App {
@@ -151,15 +154,24 @@ impl App {
         crate::theme::apply(&cc.egui_ctx);
         let args: Vec<String> = std::env::args().collect();
         let demo = args.iter().any(|a| a == "--demo");
-        let mut settings: Settings = std::fs::read(settings_dir().join(SETTINGS_FILE)).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
+        let loaded = contactsolutions_store::migration::prepare_profile().and_then(|dir| {
+            let path = dir.join(contactsolutions_store::migration::SETTINGS_FILE);
+            load_settings(&path).map(|settings| (settings, path))
+        });
+        let (mut settings, settings_path, startup_error) = match loaded {
+            Ok((settings, path)) => (settings, Some(path), None),
+            Err(error) => (Settings::default(), None, Some(error)),
+        };
         if args.iter().any(|a| a == "--light") {
             settings.appearance = Appearance::Light;
         } else if args.iter().any(|a| a == "--dark") {
             settings.appearance = Appearance::Dark;
         }
         // The demo works on a private copy in the temp folder, so nothing real changes.
-        let opened = if demo {
-            let dir = std::env::temp_dir().join(format!("contactcraft-demo-{}", std::process::id()));
+        let opened = if let Some(error) = startup_error {
+            Err(error)
+        } else if demo {
+            let dir = std::env::temp_dir().join(format!("contactsolutions-demo-{}", std::process::id()));
             Store::open(&dir)
         } else {
             Store::open_default()
@@ -193,6 +205,7 @@ impl App {
             ribbon: RibbonTab::Home,
             backstage: None,
             settings,
+            settings_path,
             notice: None,
             focus_search: false,
             import: None,
@@ -232,11 +245,15 @@ impl App {
         if args.iter().any(|a| a == "--file") {
             app.backstage = Some(Backstage::Sharing);
         }
+        if app.store_error.is_some() {
+            // Migration/settings failures must be visible immediately, not an apparently empty store.
+            app.backstage = Some(Backstage::Info);
+        }
         app.apply_settings(&cc.egui_ctx);
         // Let other Craft apps find this program through the store.
         if !demo {
             if let (Some(store), Ok(exe)) = (&app.store, std::env::current_exe()) {
-                let _ = store.set_meta("contactcraft.exe", Some(&exe.display().to_string()));
+                let _ = store.set_meta("contactsolutions.exe", Some(&exe.display().to_string()));
             }
         }
         if !demo && !dialog_mode && app.settings.check_updates && !args.iter().any(|a| a == "--no-update-check") {
@@ -254,10 +271,19 @@ impl App {
         ctx.set_zoom_factor(self.settings.zoom.clamp(80, 200) as f32 / 100.0);
     }
 
-    pub fn save_settings(&self) {
-        if let Ok(b) = serde_json::to_vec_pretty(&self.settings) {
-            let _ = std::fs::write(settings_dir().join(SETTINGS_FILE), b);
-        }
+    pub fn save_settings(&mut self) {
+        let Some(path) = self.settings_path.clone() else { return };
+        let result = (|| -> Result<(), String> {
+            use std::io::Write;
+            std::fs::create_dir_all(path.parent().unwrap()).map_err(|e| e.to_string())?;
+            let pending = path.with_extension("json.pending");
+            let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(&pending).map_err(|e| format!("Settings recovery file is busy or needs review: {e}"))?;
+            file.write_all(&serde_json::to_vec_pretty(&self.settings).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+            file.sync_all().map_err(|e| e.to_string())?;
+            drop(file);
+            std::fs::rename(pending, path).map_err(|e| e.to_string())
+        })();
+        if let Err(error) = result { self.notify(format!("Could not save settings: {error}"), true); }
     }
 
     pub fn notify(&mut self, text: impl Into<String>, error: bool) {
@@ -469,7 +495,7 @@ impl App {
             Filter::Label(l) => c.labels.iter().any(|x| x.eq_ignore_ascii_case(l)),
             Filter::Group(id) => self.group(id).is_some_and(|g| g.members.iter().any(|m| match m {
                 GroupMember::Contact { id } => id == &c.id,
-                GroupMember::Number { number } => c.phones.iter().any(|p| contactcraft_store::phone_key(number) == contactcraft_store::phone_key(&p.value) && contactcraft_store::phone_key(number).is_some()),
+                GroupMember::Number { number } => c.phones.iter().any(|p| contactsolutions_store::phone_key(number) == contactsolutions_store::phone_key(&p.value) && contactsolutions_store::phone_key(number).is_some()),
             })),
         }
     }
@@ -488,8 +514,8 @@ impl App {
     pub fn new_contact(&mut self) {
         self.active_group = None;
         let mut c = Contact::new();
-        c.phones.push(contactcraft_store::Labeled::new("mobile", ""));
-        c.emails.push(contactcraft_store::Email { label: "home".into(), ..Default::default() });
+        c.phones.push(contactsolutions_store::Labeled::new("mobile", ""));
+        c.emails.push(contactsolutions_store::Email { label: "home".into(), ..Default::default() });
         if let Filter::Label(l) = &self.filter {
             c.labels.push(l.clone());
         }
@@ -781,16 +807,16 @@ impl App {
     }
 
     fn window_title(&mut self, ctx: &egui::Context) {
-        let mut title = "ContactCraft".to_string();
+        let mut title = "ContactSolutions".to_string();
         if let Some(d) = &self.dialog {
             title = crate::dialog::title(&d.request).to_string();
             if let Pane::Edit(c) | Pane::Theme(c) = &self.pane {
                 if !c.id.is_empty() && !c.display_name().is_empty() {
-                    title = format!("Edit {} - ContactCraft", c.display_name());
+                    title = format!("Edit {} - ContactSolutions", c.display_name());
                 }
             }
         } else if let Some(c) = self.selected_contact() {
-            title = format!("{} - ContactCraft", c.display_name());
+            title = format!("{} - ContactSolutions", c.display_name());
         }
         if self.demo {
             title.push_str(" (demo)");
@@ -853,5 +879,23 @@ impl eframe::App for App {
                 let _ = std::fs::remove_dir_all(dir);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod settings_tests {
+    use super::*;
+    #[test]
+    fn settings_preserve_unknown_fields_and_reject_corruption() {
+        let path = std::env::temp_dir().join(format!("contactsolutions-settings-{}.json", contactsolutions_store::new_id()));
+        let bytes = br#"{"appearance":"Dark","zoom":150,"future":{"keep":true}}"#;
+        std::fs::write(&path, bytes).unwrap();
+        let loaded = load_settings(&path).unwrap();
+        assert_eq!(loaded.zoom, 150);
+        assert_eq!(serde_json::to_value(loaded).unwrap()["future"]["keep"], true);
+        std::fs::write(&path, b"corrupt").unwrap();
+        assert!(load_settings(&path).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), b"corrupt");
+        std::fs::remove_file(path).unwrap();
     }
 }

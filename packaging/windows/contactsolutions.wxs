@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ContactSolutions MSI (WiX Toolset v5, with its UI and Util extensions), built by package.ps1:
+
+    wix build contactsolutions.wxs -arch x64 -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
+      -d Version=1.3.0 -d BinDir=... -d IconPath=... -d LicenseRtf=... -o out.msi
+
+  Like MailCraft's and MessageCraft's installers: per-machine install into Program Files, a Start
+  Menu shortcut, and the standard WiX dialogs (welcome + licence, progress, finish with
+  "Launch ContactSolutions"). A newer installer replaces the installed version in place; the contacts
+  in %APPDATA%\ContactSolutions are never touched by installing, updating or uninstalling.
+
+  The UpgradeCode and component GUIDs below are ContactSolutions's own. Never share them with another
+  app: Windows Installer treats every package with one UpgradeCode as the same product.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package
+      Name="ContactSolutions"
+      Manufacturer="ContactSolutions contributors"
+      Version="$(var.Version)"
+      UpgradeCode="9CC84440-9F4C-4EBB-BCCC-468A2E210F25"
+      Scope="perMachine"
+      Compressed="yes"
+      Language="1033">
+    <SummaryInformation Description="ContactSolutions: your contacts on Windows, shared with every Craft app" Manufacturer="ContactSolutions contributors" />
+    <MajorUpgrade AllowDowngrades="yes" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="ContactSolutionsIcon.ico" SourceFile="$(var.IconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="ContactSolutionsIcon.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/william-pyle/ContactSolutions" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/william-pyle/ContactSolutions/releases" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/william-pyle/ContactSolutions/issues" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch ContactSolutions" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WixShellExecTarget" Value="[#ContactSolutionsExe]" />
+    <CustomAction Id="LaunchContactSolutions" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixShellExec"
+        Impersonate="yes" Return="ignore" />
+    <UI>
+      <ui:WixUI Id="WixUI_Minimal" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchContactSolutions"
+          Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" />
+    </UI>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="ContactSolutions">
+        <Component Id="ContactSolutionsExe" Guid="949544B0-8DD5-4FA5-AEBE-3B25796FF439">
+          <File Id="ContactSolutionsExe" Source="$(var.BinDir)\ContactSolutions.exe" KeyPath="yes" />
+          <File Id="NoticeMd" Source="$(var.BinDir)\NOTICE.md" />
+          <File Id="SharedContactsMd" Source="$(var.BinDir)\shared-contacts.md" />
+          <File Id="RenameMigrationMd" Source="$(var.BinDir)\rename-migration.md" />
+          <File Id="AiInstructionsMd" Source="$(var.BinDir)\messagecraft-ai-instructions.md" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut" Guid="D8F7A4F2-4B30-46AE-B533-4304A36C07B3">
+        <Shortcut Id="ContactSolutionsShortcut"
+            Name="ContactSolutions"
+            Description="Your contacts on Windows, shared with every Craft app"
+            Target="[#ContactSolutionsExe]"
+            WorkingDirectory="INSTALLFOLDER"
+            Icon="ContactSolutionsIcon.ico" />
+        <RegistryValue Root="HKLM" Key="Software\ContactSolutions" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="ContactSolutions" Level="1">
+      <ComponentRef Id="ContactSolutionsExe" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+  </Package>
+</Wix>

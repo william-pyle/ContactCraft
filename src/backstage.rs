@@ -99,18 +99,18 @@ impl App {
         }
         if self.demo {
             ui.add_space(6.0);
-            para(ui, &t, "This is the demo: made-up contacts in a temporary folder, removed when you close ContactCraft.");
+            para(ui, &t, "This is the demo: made-up contacts in a temporary folder, removed when you close ContactSolutions.");
         }
     }
 
     fn page_import(&mut self, ui: &mut Ui) {
         let t = self.t;
         title(ui, &t, "Import contacts");
-        para(ui, &t, "Bring contacts in from Google Contacts, Outlook, an iPhone or any program that saves vCard or CSV files. ContactCraft JSON files also restore group records. Every field they carry is kept; columns ContactCraft has no place for become your own fields.");
+        para(ui, &t, "Bring contacts in from Google Contacts, Outlook, an iPhone or any program that saves vCard or CSV files. ContactSolutions JSON files also restore group records. Every field they carry is kept; columns ContactSolutions has no place for become your own fields.");
         if widgets::primary_button(ui, &t, "Choose a file to import…", self.store.is_some()).clicked() {
             self.pick_import_file();
         }
-        para(ui, &t, "You can also drop the file onto the ContactCraft window.");
+        para(ui, &t, "You can also drop the file onto the ContactSolutions window.");
         ui.add_space(8.0);
         sub(ui, &t, "From Google Contacts");
         steps(ui, &t, &[
@@ -134,9 +134,9 @@ impl App {
         title(ui, &t, "Export contacts");
         para(ui, &t, &format!("Save your contacts to a file, to import into Google Contacts, Outlook or another computer. The list shows {} of {} contacts right now.", self.shown().len(), self.contacts.len()));
         let rows = [
-            ("vcf", "vCard (.vcf)", "For Google Contacts, Outlook, iPhone and almost everything else. Keeps pictures, and every ContactCraft field and theme for another ContactCraft."),
+            ("vcf", "vCard (.vcf)", "For Google Contacts, Outlook, iPhone and almost everything else. Keeps pictures, and every ContactSolutions field and theme for another ContactSolutions."),
             ("csv", "Google CSV (.csv)", "The spreadsheet file Google Contacts imports. No pictures or themes."),
-            ("json", "ContactCraft file (.json)", "Contact and group records, including membership and theme settings. Picture and font files stay in the data folder; back up that folder to keep them. A filtered export omits groups."),
+            ("json", "ContactSolutions file (.json)", "Contact and group records, including membership and theme settings. Picture and font files stay in the data folder; back up that folder to keep them. A filtered export omits groups."),
         ];
         for (kind, name, what) in rows {
             ui.add_space(6.0);
@@ -156,13 +156,13 @@ impl App {
     fn page_sharing(&mut self, ui: &mut Ui) {
         let t = self.t;
         title(ui, &t, "Sharing with Craft apps");
-        para(ui, &t, "ContactCraft keeps your contacts where every Craft app on this computer can read and change them, whether ContactCraft is open or not. MessageCraft can use their names, pictures and themes for your conversations, and MailCraft can do the same for email.");
+        para(ui, &t, "ContactSolutions keeps your contacts where every Craft app on this computer can read and change them, whether ContactSolutions is open or not. MessageCraft can use their names, pictures and themes for your conversations, and MailCraft can do the same for email.");
         sub(ui, &t, "How it works");
         steps(ui, &t, &[
             "The contacts are one database file in your own Windows profile, with the pictures beside it. Only programs you run can open it.",
             "Several programs can use it at once: a change one app makes shows in the others within a couple of seconds.",
             "Each contact carries its theme (colours, font, background, message colours), so it looks the same everywhere.",
-            "Programs other than ContactCraft use a small shared library (contactcraft-store), described in the guide that comes with ContactCraft.",
+            "Programs other than ContactSolutions use a small shared library (contactsolutions-store), described in the guide that comes with ContactSolutions.",
         ]);
         if let Some(s) = &self.store {
             let dir = s.dir().to_path_buf();
@@ -223,10 +223,10 @@ impl App {
             self.reload();
         }
         sub(ui, &t, "Updates");
-        if ui.checkbox(&mut self.settings.check_updates, "Check for a new version when ContactCraft starts").changed() {
+        if ui.checkbox(&mut self.settings.check_updates, "Check for a new version when ContactSolutions starts").changed() {
             self.save_settings();
         }
-        para(ui, &t, "ContactCraft asks GitHub for its latest release; nothing about you or your contacts is sent.");
+        para(ui, &t, "ContactSolutions asks GitHub for its latest release; nothing about you or your contacts is sent.");
         if widgets::secondary_button(ui, &t, "Check now").clicked() {
             let ctx = ui.ctx().clone();
             self.check_for_updates(&ctx, true);
@@ -235,7 +235,7 @@ impl App {
 
     fn page_about(&mut self, ui: &mut Ui) {
         let t = self.t;
-        title(ui, &t, "About ContactCraft");
+        title(ui, &t, "About ContactSolutions");
         para(ui, &t, &format!("Version {}", env!("CARGO_PKG_VERSION")));
         ui.horizontal(|ui| {
             if widgets::secondary_button(ui, &t, "Check for updates").clicked() {

@@ -1,18 +1,22 @@
-# ContactCraft's shared contacts
+# ContactSolutions's shared contacts
 
-ContactCraft keeps its contacts where every Craft app on the computer can use them, **whether
-ContactCraft is running or not**. This page is for the people building those apps
+ContactSolutions keeps its contacts where every Craft app on the computer can use them, **whether
+ContactSolutions is running or not**. This page is for the people building those apps
 (MessageCraft, MailCraft and the next ones).
+
+Existing MailCraft/MessageCraft builds are not compatible with this renamed interface.
+Their migrations are separate work; this guide describes the target interface.
+Settings remain in the roaming ContactSolutions profile even with a custom data directory.
 
 ## Where
 
 ```
-%APPDATA%\ContactCraft\           (or the folder in the CONTACTCRAFT_DATA environment variable)
+%APPDATA%\ContactSolutions\           (or the folder in the CONTACTSOLUTIONS_DATA environment variable)
 ├── contacts.db                   SQLite 3 database, WAL mode
 ├── photos\                       contact pictures   (<contact id>-<hash>.png|jpg|gif|webp)
 ├── backgrounds\                  theme banner and background pictures
 ├── fonts\                        font files a theme uses that aren't Windows' own
-└── contactcraft-ui.json          ContactCraft's own window settings (not shared data)
+└── contactsolutions-ui.json          ContactSolutions's own window settings (not shared data)
 ```
 
 Several programs can have `contacts.db` open at the same time (SQLite's WAL mode with a busy
@@ -21,18 +25,18 @@ timeout). Nothing runs in the background and there's no server: each app opens t
 For a ready-made brief to give an AI coding agent working on MessageCraft (or MailCraft), see
 [messagecraft-ai-instructions.md](messagecraft-ai-instructions.md).
 
-## From Rust: use the `contactcraft-store` crate
+## From Rust: use the `contactsolutions-store` crate
 
 ```toml
-# Use the release with the group API:
-contactcraft-store = { git = "https://github.com/william-pyle/ContactCraft", tag = "v1.2.0" }
-# Or use a local checkout: contactcraft-store = { path = "../ContactCraft/store" }
+# 1.3.0 is unreleased; use the renamed local checkout:
+contactsolutions-store = { path = "../ContactSolutions/store" }
+# Or use a local checkout: contactsolutions-store = { path = "../ContactSolutions/store" }
 ```
 
 ```rust
-use contactcraft_store::{Store, Contact};
+use contactsolutions_store::{Store, Contact};
 
-let store = Store::open_default()?;                  // %APPDATA%\ContactCraft
+let store = Store::open_default()?;                  // %APPDATA%\ContactSolutions
 
 // Look someone up the way a message or an email arrives.
 if let Some(c) = store.find_by_phone("+1 (555) 010-2030")? {   // any format; last 10 digits match
@@ -48,7 +52,7 @@ let everyone = store.list()?;                        // sorted the way they file
 let hits = store.search("smith")?;
 
 // Groups can contain contact IDs and bare phone numbers.
-use contactcraft_store::{ContactGroup, GroupMember};
+use contactsolutions_store::{ContactGroup, GroupMember};
 let mut group = ContactGroup::new("Weekend team");
 group.add_contact("<saved-contact-id>");
 group.add_number("+1 555 010 9999");
@@ -59,10 +63,10 @@ group.remove_member(&GroupMember::Number { number: "+1 555 010 9999".into() });
 store.save_group(&mut group)?;
 store.delete_group(&group.id)?;
 
-// Change or add one: ContactCraft shows it within a couple of seconds.
+// Change or add one: ContactSolutions shows it within a couple of seconds.
 let mut c = Contact::new();
 c.name.given = "Sam".into();
-c.phones.push(contactcraft_store::Labeled::new("mobile", "+1 555 010 9999"));
+c.phones.push(contactsolutions_store::Labeled::new("mobile", "+1 555 010 9999"));
 store.save(&mut c)?;                                 // gives it an id and timestamps
 store.delete(&c.id)?;
 
@@ -98,7 +102,7 @@ detect deletions. `theme_background_path(&group.theme)`, `theme_font_path(&group
 `banner_path(&group.theme)` resolve theme files for a group.
 
 **Fields you add.** If your app wants to keep something of its own on a contact, add it as a top
-level JSON key with your app's name in it (for example `"messagecraftLastTexted"`). ContactCraft
+level JSON key with your app's name in it (for example `"messagecraftLastTexted"`). ContactSolutions
 keeps keys it doesn't know (`Contact::extra`), shows them under "From other apps", and never drops
 them.
 
@@ -124,14 +128,14 @@ them.
 An empty colour always means App Default. `Store::set_banner(&mut theme, owner_id, bytes)` writes
 PNG, JPEG, GIF or WebP bytes to the shared theme folder; save the contact or group afterwards.
 
-## Asking ContactCraft to edit a contact or group
+## Asking ContactSolutions to edit a contact or group
 
-Any app can start `ContactCraft.exe --new-contact`, `--edit-contact <id>`, `--edit-phone <number>`
-or `--edit-email <address>` to show only ContactCraft's editor, in a window that stays on top.
+Any app can start `ContactSolutions.exe --new-contact`, `--edit-contact <id>`, `--edit-phone <number>`
+or `--edit-email <address>` to show only ContactSolutions's editor, in a window that stays on top.
 Use `--new-group --group-name <name> [--group-number <number> ...]` or `--open-group <id>`
 for the group editor. New groups stay in memory until Save is pressed; Cancel leaves no group.
 It returns exit code 0 (saved, with `saved <id>` on standard output), 1 (cancelled) or 2 (error),
-and `--result-file <path>` writes the outcome as JSON. `Store::contactcraft_exe()` finds the
+and `--result-file <path>` writes the outcome as JSON. `Store::contactsolutions_exe()` finds the
 program. See the README's "Command line for other apps".
 
 ## From other languages: the database
@@ -175,7 +179,7 @@ above. The Rust crate does this; using it is the safe way.
 ## Files
 
 Import and export go through vCard 3.0 (Google, Outlook, Apple), Google CSV, Outlook CSV and
-ContactCraft's own JSON (`{"format": "contactcraft", "version": 2, "contacts": [...], "groups": [...]}`).
+ContactSolutions's own JSON (`{"format": "contactsolutions", "version": 2, "contacts": [...], "groups": [...]}`).
 Version 1 JSON imports remain supported. Contact/group theme file names are stored in JSON, but
 the files themselves are not embedded; back up the whole data folder to preserve pictures and
 fonts. vCard and CSV import/export remain contact-only.

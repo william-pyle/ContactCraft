@@ -1,4 +1,4 @@
-//! ContactCraft's look: the MailCraft palette, type scale and widget style, shared with
+//! ContactSolutions's look: the MailCraft palette, type scale and widget style, shared with
 //! MessageCraft.
 //!
 //! The colour values, type sizes and widget metrics follow MailCraft's own theme

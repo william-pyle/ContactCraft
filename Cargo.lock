@@ -647,11 +647,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "contactcraft"
-version = "1.2.4"
+name = "contactsolutions"
+version = "1.3.0"
 dependencies = [
  "chrono",
- "contactcraft-store",
+ "contactsolutions-store",
  "eframe",
  "egui",
  "image",
@@ -665,8 +665,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "contactcraft-store"
-version = "1.2.4"
+name = "contactsolutions-store"
+version = "1.3.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",

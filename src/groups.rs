@@ -1,6 +1,6 @@
 //! The group editor. Groups have their own shared theme and can include contacts or bare numbers.
 
-use contactcraft_store::{Contact, GroupMember, labels};
+use contactsolutions_store::{Contact, GroupMember, labels};
 use egui::{Color32, CornerRadius, Rect, ScrollArea, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
 
 use crate::app::App;

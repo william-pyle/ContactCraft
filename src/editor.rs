@@ -1,10 +1,10 @@
-//! The contact editor: every field ContactCraft keeps, in sections that fold away, with lists
+//! The contact editor: every field ContactSolutions keeps, in sections that fold away, with lists
 //! that grow (as many phones, addresses, dates... as needed, each with any label) and custom
 //! fields for anything else.
 
 use std::collections::HashSet;
 
-use contactcraft_store::{Address, Contact, CustomField, Email, Im, Labeled, Organization, labels};
+use contactsolutions_store::{Address, Contact, CustomField, Email, Im, Labeled, Organization, labels};
 use egui::{Align2, Margin, Rect, ScrollArea, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
 
 use crate::app::{App, Pane};
@@ -221,7 +221,7 @@ impl App {
             }
 
             if !c.extra.is_empty() && open(ui, &t, &mut closed, "extra", Icon::Info, "Kept from other apps") {
-                hint(ui, &t, "Fields another app added. ContactCraft keeps them as they are.");
+                hint(ui, &t, "Fields another app added. ContactSolutions keeps them as they are.");
                 for (k, v) in &c.extra {
                     ui.horizontal(|ui| {
                         lbl(ui, &t, k);

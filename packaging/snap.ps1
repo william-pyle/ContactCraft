@@ -1,4 +1,4 @@
-# Developer helper: start ContactCraft (demo contacts), photograph its window, close it.
+# Developer helper: start ContactSolutions (demo contacts), photograph its window, close it.
 # Usage: snap.ps1 <exe> <out.png> [extra args...]
 param([string]$Exe, [string]$Out, [Parameter(ValueFromRemainingArguments = $true)][string[]]$Rest)
 $ErrorActionPreference = 'Stop'

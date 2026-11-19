@@ -34,13 +34,13 @@ jobs:
           $v = (Select-String -Path Cargo.toml -Pattern '^version\s*=\s*"([^"]+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
           if ("v$v" -ne "${{ github.ref_name }}") { throw "Tag ${{ github.ref_name }} doesn't match Cargo.toml version $v" }
 
-      - name: Build ContactCraft (tests, program, zip, installer)
+      - name: Build ContactSolutions (tests, program, zip, installer)
         shell: pwsh
         run: ./build.ps1
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ContactCraft-windows
+          name: ContactSolutions-windows
           path: dist/
 
       - name: Publish release
@@ -48,8 +48,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/ContactCraft-windows-x64.msi
-            dist/ContactCraft-windows.zip
-          name: ContactCraft ${{ github.ref_name }}
+            dist/ContactSolutions-windows-x64.msi
+            dist/ContactSolutions-windows.zip
+          name: ContactSolutions ${{ github.ref_name }}
           body_path: packaging/release-notes.md
           generate_release_notes: true

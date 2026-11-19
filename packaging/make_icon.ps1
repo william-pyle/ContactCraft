@@ -1,5 +1,5 @@
-# Draws ContactCraft's icon (the Craft family's blue tile with a solid white person) and writes
-# assets\contactcraft.ico (16, 24, 32, 48, 64, 128 and 256 px) and web\favicon.ico.
+# Draws ContactSolutions's icon (the Craft family's blue tile with a solid white person) and writes
+# assets\contactsolutions.ico (16, 24, 32, 48, 64, 128 and 256 px) and web\favicon.ico.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
@@ -55,7 +55,7 @@ for ($i = 0; $i -lt $sizes.Count; $i++) {
 foreach ($p in $pngs) { $w.Write($p) }
 $w.Flush()
 New-Item -ItemType Directory -Force (Join-Path $root 'assets'), (Join-Path $root 'web') | Out-Null
-[System.IO.File]::WriteAllBytes((Join-Path $root 'assets\contactcraft.ico'), $ms.ToArray())
+[System.IO.File]::WriteAllBytes((Join-Path $root 'assets\contactsolutions.ico'), $ms.ToArray())
 [System.IO.File]::WriteAllBytes((Join-Path $root 'web\favicon.ico'), $ms.ToArray())
-[System.IO.File]::WriteAllBytes((Join-Path $root 'assets\contactcraft-256.png'), $pngs[$sizes.Count - 1])
-Write-Host 'Wrote assets\contactcraft.ico'
+[System.IO.File]::WriteAllBytes((Join-Path $root 'assets\contactsolutions-256.png'), $pngs[$sizes.Count - 1])
+Write-Host 'Wrote assets\contactsolutions.ico'

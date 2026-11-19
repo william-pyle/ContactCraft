@@ -1,3 +1,15 @@
+## ContactSolutions 1.3.0 - unreleased
+
+- Renamed the application, Rust crates, executable, installer and current documentation.
+- Added guarded migration of existing data/settings to ContactSolutions names; originals remain recovery copies.
+- Existing Workspace IDs/routes and the MSI upgrade family remain stable.
+- MailCraft and MessageCraft need separate migrations; old running versions are not supported during this change.
+- No 1.3.0 release has been published or installed.
+
+---
+
+Historical release notes below retain the names used when published.
+
 ## ContactCraft 1.2.4
 
 Contacts and groups on Windows, with pictures and themes shared with other applications.

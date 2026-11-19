@@ -147,7 +147,7 @@ pub fn avatar(p: &egui::Painter, t: &Tokens, center: egui::Pos2, radius: f32, na
 
 /// A contact's avatar: their picture when they have one, else initials on their theme colour,
 /// in their theme's shape (circle, rounded or square).
-pub fn contact_avatar(p: &egui::Painter, c: &contactcraft_store::Contact, center: egui::Pos2, radius: f32, photo: Option<egui::TextureId>) {
+pub fn contact_avatar(p: &egui::Painter, c: &contactsolutions_store::Contact, center: egui::Pos2, radius: f32, photo: Option<egui::TextureId>) {
     let rect = Rect::from_center_size(center, Vec2::splat(radius * 2.0));
     let corner = match c.theme.avatar_shape.as_str() {
         "square" => radius * 0.12,
@@ -173,7 +173,7 @@ pub fn contact_avatar(p: &egui::Painter, c: &contactcraft_store::Contact, center
 }
 
 /// A contact's own colour: their theme's accent, else a steady colour from their name.
-pub fn contact_color(c: &contactcraft_store::Contact) -> Color32 {
+pub fn contact_color(c: &contactsolutions_store::Contact) -> Color32 {
     theme::hex(&c.theme.accent).unwrap_or_else(|| theme::avatar_color(&c.display_name(), ""))
 }
 

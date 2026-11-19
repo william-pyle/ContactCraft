@@ -1,5 +1,5 @@
-//! New versions: on start (and from Help › Check for Updates) ContactCraft asks GitHub for the
-//! latest release of william-pyle/ContactCraft. When it's newer than this copy, it offers to
+//! New versions: on start (and from Help › Check for Updates) ContactSolutions asks GitHub for the
+//! latest release of william-pyle/ContactSolutions. When it's newer than this copy, it offers to
 //! download the installer and run it (the installer replaces this version and can start the new
 //! one when it finishes). Nothing about the person or their contacts is sent: it's one anonymous
 //! request for the public release list.
@@ -15,8 +15,8 @@ use crate::app::App;
 use crate::theme;
 use crate::widgets;
 
-pub const REPO: &str = "william-pyle/ContactCraft";
-pub const RELEASES_PAGE: &str = "https://github.com/william-pyle/ContactCraft/releases";
+pub const REPO: &str = "william-pyle/ContactSolutions";
+pub const RELEASES_PAGE: &str = "https://github.com/william-pyle/ContactSolutions/releases";
 const INSTALLER_SUFFIX: &str = "-windows-x64.msi";
 
 #[derive(Clone, Debug)]
@@ -81,7 +81,7 @@ pub fn is_newer(candidate: &str, current: &str) -> bool {
 fn agent() -> ureq::Agent {
     ureq::Agent::config_builder()
         .timeout_global(Some(Duration::from_secs(30)))
-        .user_agent(concat!("ContactCraft/", env!("CARGO_PKG_VERSION"), " (update check)"))
+        .user_agent(concat!("ContactSolutions/", env!("CARGO_PKG_VERSION"), " (update check)"))
         .build()
         .into()
 }
@@ -114,10 +114,10 @@ fn fetch_latest() -> Result<Option<Release>, String> {
 fn download(url: &str, name: &str, tx: &Sender<Msg>, ctx: &egui::Context) -> Result<PathBuf, String> {
     let resp = agent().get(url).call().map_err(|e| e.to_string())?;
     let total = resp.headers().get("content-length").and_then(|v| v.to_str().ok()).and_then(|v| v.parse().ok()).unwrap_or(0u64);
-    let dir = std::env::temp_dir().join("ContactCraft-update");
+    let dir = std::env::temp_dir().join("ContactSolutions-update");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let safe: String = name.chars().filter(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '.' | '_')).collect();
-    let path = dir.join(if safe.is_empty() { "ContactCraft-windows-x64.msi".to_string() } else { safe });
+    let path = dir.join(if safe.is_empty() { "ContactSolutions-windows-x64.msi".to_string() } else { safe });
     let part = path.with_extension("part");
     let mut file = std::fs::File::create(&part).map_err(|e| e.to_string())?;
     let mut reader = resp.into_body().into_reader();
@@ -202,7 +202,7 @@ impl App {
                 Msg::Latest(_, manual) => {
                     self.updater.state = UpdateState::Idle;
                     if manual {
-                        self.notify(format!("You have the latest version of ContactCraft ({}).", env!("CARGO_PKG_VERSION")), false);
+                        self.notify(format!("You have the latest version of ContactSolutions ({}).", env!("CARGO_PKG_VERSION")), false);
                     }
                 }
                 Msg::CheckFailed(e, manual) => {
@@ -245,9 +245,9 @@ impl App {
         }
         let mut act = None;
         let (title, release) = match &self.updater.state {
-            UpdateState::Available(r) => (format!("ContactCraft {} is available", r.version), r.clone()),
-            UpdateState::Downloading { release, .. } => (format!("Downloading ContactCraft {}…", release.version), release.clone()),
-            UpdateState::Ready { release, .. } => (format!("ContactCraft {} is ready to install", release.version), release.clone()),
+            UpdateState::Available(r) => (format!("ContactSolutions {} is available", r.version), r.clone()),
+            UpdateState::Downloading { release, .. } => (format!("Downloading ContactSolutions {}…", release.version), release.clone()),
+            UpdateState::Ready { release, .. } => (format!("ContactSolutions {} is ready to install", release.version), release.clone()),
             UpdateState::Failed(_) => ("The new version couldn't be downloaded".to_string(), Release { version: String::new(), notes: String::new(), page: RELEASES_PAGE.into(), installer_url: None, installer_name: String::new(), size: 0 }),
             _ => return,
         };
@@ -299,7 +299,7 @@ impl App {
                     }
                 }
                 UpdateState::Ready { file, .. } => {
-                    ui.label(egui::RichText::new("ContactCraft closes, and the installer replaces it with the new version. Your contacts aren't touched. Windows may ask for permission.").font(theme::regular(12.5)).color(t.text_dim));
+                    ui.label(egui::RichText::new("ContactSolutions closes, and the installer replaces it with the new version. Your contacts aren't touched. Windows may ask for permission.").font(theme::regular(12.5)).color(t.text_dim));
                     ui.add_space(10.0);
                     ui.horizontal(|ui| {
                         ui.spacing_mut().item_spacing.x = 8.0;
@@ -366,9 +366,9 @@ impl App {
             return None;
         }
         match &self.updater.state {
-            UpdateState::Available(r) => Some(format!("ContactCraft {} is available", r.version)),
+            UpdateState::Available(r) => Some(format!("ContactSolutions {} is available", r.version)),
             UpdateState::Downloading { got, total, .. } if *total > 0 => Some(format!("Downloading the new version… {}%", got * 100 / total)),
-            UpdateState::Ready { release, .. } => Some(format!("ContactCraft {} is ready to install", release.version)),
+            UpdateState::Ready { release, .. } => Some(format!("ContactSolutions {} is ready to install", release.version)),
             _ => None,
         }
     }
