@@ -147,11 +147,13 @@ fn open_source_files_prevent_migration_without_closing_their_owner() {
 #[test]
 fn legacy_vcard_extension_reads_but_new_exports_use_new_name() {
     let mut c = Contact::new(); c.name.given = "Fixture".into(); c.theme.accent = "#123456".into();
+    c.id = "existing-contact-id".into();
     c.extra.insert("retained".into(), serde_json::json!([1,2,3]));
     let current = vcard::export(&[c.clone()], |_| None);
     assert!(current.contains("X-CONTACTSOLUTIONS-JSON")); assert!(!current.contains("X-CONTACTCRAFT-JSON"));
     for text in [current.clone(), current.replace("X-CONTACTSOLUTIONS-JSON", "X-CONTACTCRAFT-JSON")] {
         let imported = vcard::import(&text);
-        assert_eq!(imported[0].0.id, c.id); assert_eq!(imported[0].0.extra, c.extra); assert_eq!(imported[0].0.theme, c.theme);
+        // Export import deliberately allocates new IDs; folder migration preserves existing IDs.
+        assert!(imported[0].0.id.is_empty()); assert_eq!(imported[0].0.extra, c.extra); assert_eq!(imported[0].0.theme, c.theme);
     }
 }

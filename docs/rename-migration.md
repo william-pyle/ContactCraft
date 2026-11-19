@@ -65,6 +65,38 @@ Restoring that state alone would lose later edits; export/reconcile them first.
 Neither installer rollback nor renaming the source checkout rolls contact data back.
 Do not install/uninstall a product merely to test this procedure on an active host.
 
+## Export/import is not a complete backup or identity-preserving migration
+
+The v1.2.4 "ContactCraft (everything)" JSON export with **all contacts** retains
+contact details, custom/unknown fields and groups in the file. It does not embed
+photo, theme-image or font files. JSON import clears the photo reference and Google
+link metadata; theme file references alone do not restore those external files.
+Exporting only shown contacts excludes groups. App settings are not exported.
+
+The old vCard export includes custom/unknown contact data through its JSON extension
+and can embed contact photos. It excludes groups and settings, and does not bundle
+theme-image/font files. Imported photos larger than 512 pixels may be resized.
+CSV is less complete and is not the preferred recovery format.
+
+Final import creates new contact and group IDs. JSON group members are remapped to
+the imported or matched contact IDs. "Skip contacts I already have" is enabled by
+default: it matches email, phone or name and skips the record, without merging its
+fields into the destination. Groups are not deduplicated. Importing the same file
+twice can create duplicate groups; disabling contact skipping can duplicate contacts.
+
+The old installer does not remove the user data folder. If it remains, the renamed
+app attempts guarded folder migration on startup before an import, so importing
+again is usually unnecessary. For full recovery, keep a consistent complete-folder
+backup (including any custom store and the separate settings profile). JSON plus
+vCard are useful additional backups, but importing both is not a guaranteed merge.
+Validate copies in an isolated profile: counts, group membership, custom fields,
+pictures/themes/settings and identities should be checked before discarding originals.
+
+`python scripts/check-legacy-export.py` exercises actual v1.2.4 export code and the
+current reader/import/save/duplicate functions using synthetic data. It does not
+uninstall/install anything or read the owner's profile. This is separate from the
+native pointer/keyboard and installer validation still needed before deployment.
+
 ## Intentionally retained old names
 
 - Migration source folder/environment/settings names and old executable metadata key.

@@ -13,6 +13,7 @@ $allowed = @{
     'web/help.html' = 'Unreleased notice distinguishes historical downloads.'
     'scripts/check-rename.ps1' = 'This exception audit pattern and allowlist.'
     'scripts/check-window-chrome.ps1' = 'Opt-in isolated legacy-profile migration fixture and environment isolation.'
+    'scripts/check-legacy-export.py' = 'Historical v1.2.4 exporter and synthetic import round-trip fixture.'
 }
 $pattern = '(?i)contact[-_ ]?craft'
 $files = @(git ls-files --cached --others --exclude-standard) | Sort-Object -Unique
@@ -21,7 +22,7 @@ $count = 0
 foreach ($file in $files) {
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
     if ($file -match $pattern) { throw "Legacy tracked filename remains: $file" }
-    if ([IO.Path]::GetExtension($file) -notin '.rs','.toml','.lock','.md','.json','.ps1','.yml','.html','.svg','.wxs') { continue }
+    if ([IO.Path]::GetExtension($file) -notin '.rs','.toml','.lock','.md','.json','.ps1','.py','.yml','.html','.svg','.wxs') { continue }
     $hits = [regex]::Matches([IO.File]::ReadAllText((Join-Path $PWD $file)), $pattern).Count
     if ($hits -and -not $allowed.ContainsKey($file)) { throw "Unexplained old product name in $file ($hits matches)" }
     if ($hits) { $count += $hits; Write-Output "$file : $hits documented matches - $($allowed[$file])" }
