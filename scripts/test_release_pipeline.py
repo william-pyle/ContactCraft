@@ -212,6 +212,9 @@ class PromotionTests(unittest.TestCase):
     def test_workflow_contract_and_no_duplicate_release_build(self):
         workflow = (pipeline.ROOT / pipeline.WORKFLOW).read_text(encoding="utf-8-sig")
         self.assertIn('toolchain: "' + pipeline.contract()["toolchain"] + '"', workflow)
+        self.assertIn('rustup default ' + pipeline.contract()["toolchain"], workflow)
+        self.assertIn(pipeline.contract()["toolchain"] + '-x86_64-pc-windows-msvc', workflow)
+        self.assertLess(workflow.index('rustup toolchain uninstall'), workflow.index('uses: Swatinem/rust-cache'))
         self.assertEqual(workflow.count("run: ./build.ps1"), 1)
         release = workflow.split("\n  release:\n")[1]
         self.assertNotIn("./build.ps1", release)
@@ -219,6 +222,7 @@ class PromotionTests(unittest.TestCase):
         self.assertIn("gh release create", release)
         self.assertNotIn("--clobber", release)
         build = (pipeline.ROOT / "build.ps1").read_text()
+        self.assertNotIn('rustup toolchain uninstall', build)
         self.assertIn("cargo test --workspace --locked --quiet", build)
         self.assertIn("cargo build --release --locked", build)
 

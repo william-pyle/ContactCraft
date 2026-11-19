@@ -66,7 +66,13 @@ replace assets or rerun creation. Retain the producer artifact and run evidence.
 ## Avoiding repeated work
 
 The cache action keeps its compiler/host, Cargo.lock/manifests and Rust environment
-invalidation. Only main push runs save caches; PRs/manual runs may restore. Caches are
+invalidation. It also hashes every installed compiler: observed main run 44454776158
+missed because the hosted image retained unused Rust 1.99.1 alongside pinned 1.100.0,
+whereas run 44454294420 had only the 1.100.0 compiler version. Before caching, CI now
+selects the pinned default and removes unused toolchains on its disposable hosted runner.
+Local toolchains are never removed by build.ps1. This stabilizes the inventory without
+dropping compiler/target/environment hashes or weakening dependency invalidation.
+Only main push runs save caches; PRs/manual runs may restore. Caches are
 compilation accelerators, never trusted release artifacts. `--locked` prevents an
 unreviewed dependency resolution. The existing cache missed after the repository rename,
 then hit on the tag; no evidence justified adding another large cache or weakening keys.

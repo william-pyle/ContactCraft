@@ -36,6 +36,23 @@ jobs:
         with:
           toolchain: "1.100.0"
 
+      - name: Normalize disposable runner toolchain inventory
+        shell: pwsh
+        run: |
+          # rust-cache hashes ALL installed compilers, including unused image defaults.
+          # This runs only on a disposable hosted runner, never in build.ps1 locally.
+          rustup default 1.100.0
+          if ($LASTEXITCODE -ne 0) { throw 'Could not select the pinned toolchain.' }
+          $installed = @(rustup toolchain list --quiet)
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inventory CI toolchains.' }
+          foreach ($entry in $installed) {
+            $toolchain = ($entry -split '\s+')[0]
+            if ($toolchain -ne '1.100.0-x86_64-pc-windows-msvc') {
+              rustup toolchain uninstall $toolchain
+              if ($LASTEXITCODE -ne 0) { throw "Could not remove unused CI toolchain $toolchain" }
+            }
+          }
+
       - uses: Swatinem/rust-cache@v2
         with:
           # Compiler, Cargo.lock/manifests and Rust build environment remain in the key.
