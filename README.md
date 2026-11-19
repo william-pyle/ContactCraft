@@ -9,8 +9,9 @@ about a person, plus anything else you want to add. It also keeps a picture and 
 person. Integrating applications can read and change the same contacts directly.
 Existing MailCraft and MessageCraft versions require separate migrations to the renamed store.
 
-**1.3.0 is unreleased.** The latest published release is ContactCraft v1.2.4; its historical
-asset names remain unchanged. The ContactSolutions package names below describe the next build.
+**ContactSolutions 1.3.0** introduces the renamed application and guarded migration of
+existing data. Read the [migration and recovery guide](docs/rename-migration.md) before
+first start. MailCraft and MessageCraft migrations are separate work.
 
 [**Download the latest published release**](https://github.com/william-pyle/ContactSolutions/releases/latest)
 

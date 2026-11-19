@@ -1,10 +1,25 @@
-## ContactSolutions 1.3.0 - unreleased
+## ContactSolutions 1.3.0
 
 - Renamed the application, Rust crates, executable, installer and current documentation.
 - Added guarded migration of existing data/settings to ContactSolutions names; originals remain recovery copies.
 - Existing Workspace IDs/routes and the MSI upgrade family remain stable.
 - MailCraft and MessageCraft need separate migrations; old running versions are not supported during this change.
-- No 1.3.0 release has been published or installed.
+- Existing integrated toolbar and native window controls are preserved.
+
+### Before first start
+
+Keep a consistent full backup. Startup migrates the old data/settings by a validated
+offline copy, retaining originals and refusing conflicting or inaccessible stores.
+Do not resume old consumers after migration. JSON/vCard import is not an
+identity-preserving replacement for a full backup. See the packaged
+`rename-migration.md` or [migration guide](https://github.com/william-pyle/ContactSolutions/blob/v1.3.0/docs/rename-migration.md).
+
+### Validation limits
+
+Synthetic migration/export round trips and native window assertions were checked.
+Actual installer upgrade/repair/uninstall, direct pointer/keyboard interaction and
+mixed-monitor DPI remain unverified. Publication does not install the app or
+validate migration of any user's live data.
 
 ---
 

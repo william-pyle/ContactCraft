@@ -32,11 +32,12 @@ Settings remain in the roaming ContactSolutions profile even with a custom data 
 In MessageCraft's `Cargo.toml` under `[dependencies]`:
 
 ```toml
-contactsolutions-store = { path = "../ContactSolutions/store" }
+contactsolutions-store = { git = "https://github.com/william-pyle/ContactSolutions", tag = "v1.3.0" }
 ```
 
-The renamed crate is version 1.3.0, currently unreleased. Historical v1.2.0 keeps its
-original crate name. Pin a new published version only after it actually exists.
+The renamed crate is version 1.3.0. For local development, use
+`contactsolutions-store = { path = "../ContactSolutions/store" }` instead.
+Historical versions retain their original crate name.
 
 It brings `rusqlite` with SQLite bundled (compiled with the MSVC C compiler MessageCraft already
 builds with), `serde`, `serde_json`, `chrono`, `base64`, `sha2` and `getrandom`. The crate's own

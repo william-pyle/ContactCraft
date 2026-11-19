@@ -28,8 +28,8 @@ For a ready-made brief to give an AI coding agent working on MessageCraft (or Ma
 ## From Rust: use the `contactsolutions-store` crate
 
 ```toml
-# 1.3.0 is unreleased; use the renamed local checkout:
-contactsolutions-store = { path = "../ContactSolutions/store" }
+# Pin the renamed interface to this release:
+contactsolutions-store = { git = "https://github.com/william-pyle/ContactSolutions", tag = "v1.3.0" }
 # Or use a local checkout: contactsolutions-store = { path = "../ContactSolutions/store" }
 ```
 

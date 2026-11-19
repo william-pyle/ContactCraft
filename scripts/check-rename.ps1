@@ -2,15 +2,12 @@
 $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
 $allowed = @{
-    'README.md' = 'Latest published product remains historical v1.2.4.'
     'packaging/release-notes.md' = 'Historical release notes are preserved verbatim.'
     'docs/rename-migration.md' = 'Migration/recovery instructions and immutable Alpha mapping.'
     'store/src/migration.rs' = 'Readers for legacy data/settings/environment and executable metadata cleanup.'
     'store/tests/migration.rs' = 'Synthetic old-data/export and conflict fixtures.'
     'store/src/vcard.rs' = 'Read old exports; write only the new extension.'
     'src/io.rs' = 'Synthetic legacy JSON import fixture.'
-    'web/index.html' = 'Unreleased notice distinguishes historical downloads.'
-    'web/help.html' = 'Unreleased notice distinguishes historical downloads.'
     'scripts/check-rename.ps1' = 'This exception audit pattern and allowlist.'
     'scripts/check-window-chrome.ps1' = 'Opt-in isolated legacy-profile migration fixture and environment isolation.'
     'scripts/check-legacy-export.py' = 'Historical v1.2.4 exporter and synthetic import round-trip fixture.'

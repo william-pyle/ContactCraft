@@ -1,6 +1,7 @@
 # ContactSolutions 1.3.0 migration and recovery
 
-1.3.0 is unreleased. No installer or live-data migration is authorized by building it.
+This guide covers version 1.3.0. Building or publishing a package does not install
+it or migrate live data; migration occurs only when the application is started.
 The renamed application is the first product in a wider rename; older MailCraft and
 MessageCraft versions are not supported against its new paths/interfaces. Their
 source changes and deployments are separate work.
@@ -120,6 +121,8 @@ after verifying matching commits, trees and tags in both directories. Retain the
 old `C:/Projects/ContactCraft` directory untouched; this explicit decision supersedes
 the earlier move-only plan. Never move a terminal's live cwd or close its session.
 Workspace facts point to the selected checkout while keeping the same Card ID/routes.
-Rename the existing GitHub repository LAST, then update the selected checkout's
-origin and verify repository identity/history/tags/releases. Do not publish a release,
-modify the retained checkout or reuse the old GitHub repository name during cutover.
+The existing GitHub repository was renamed to `william-pyle/ContactSolutions` after
+cutover checks. Repository identity, history and historical tags/releases are
+preserved. Release publication is a separately authorized operation; it does not
+authorize installation or live-data migration. Do not modify the retained checkout
+or reuse the old GitHub repository name.
