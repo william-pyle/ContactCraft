@@ -3,6 +3,7 @@
 /node_modules
 *.log
 /.tools
+__pycache__/
 
 # Craft Anything's own project records (this folder is also a Craft Anything project)
 /capture

@@ -381,23 +381,23 @@ in place.
 
 ## Making a release
 
-1. Change `version` in `Cargo.toml` and `store/Cargo.toml` (for example to `1.3.0`) and update
-   `packaging/release-notes.md`.
-2. Commit, then tag and push:
+1. Finish source, workflow, documentation and release notes first. For a new product release,
+   synchronize `Cargo.toml`, `store/Cargo.toml` and `package.json`. Workflow-only changes do not
+   bump the product version or alter an existing release.
+2. Commit and push `main`, then wait for the **Build** workflow to succeed for that exact
+   commit. It runs the workspace tests and builds/packages once on Windows with locked
+   dependencies and the pinned toolchain. Do not tag while CI is pending or failed.
+3. Only with separate release authorization, create and push the new version tag at that
+   successful commit. Never reuse an existing tag or replace published assets.
+4. The tag job verifies the successful main producer and promotes its immutable MSI/ZIP
+   without rebuilding. Missing, expired or mismatched provenance/assets fail closed. It
+   creates a new release and downloads its assets to verify their final bytes.
+5. Publication is not installation. Installed copies can offer the update on their next start;
+   installation, restart and live-data migration require their own authorization.
 
-   ```powershell
-   git tag v1.3.0
-   git push origin main v1.3.0
-   ```
-
-3. The **Build** workflow (`.github/workflows/build.yml`) builds and tests on Windows, makes the
-   installer and the zip, and publishes a GitHub Release with both attached. The tag must match
-   the version in `Cargo.toml`.
-4. Copies of ContactSolutions that are already installed see the new release the next time they
-   start, and offer to install it.
-
-Every push to `main` and every pull request is built as well; the files are kept as a workflow
-artifact.
+See [release workflow and recovery](docs/release-workflow.md) for the exact gate, retention,
+commands and measured timing baseline. Pull requests validate their merge commits; only
+successful main push artifacts can be released. Manual builds are diagnostic, not producers.
 
 ## Project layout
 

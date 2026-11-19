@@ -8,48 +8,98 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+# PRs validate merge commits; main validates the exact commit eligible for release.
+# Tags never cancel each other or an in-progress main producer.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   windows:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check release pipeline contracts
+        run: python -m unittest discover -s scripts -p "test_release_pipeline.py" -v
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.100.0"
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          # Compiler, Cargo.lock/manifests and Rust build environment remain in the key.
+          # PRs/dispatches can restore; only trusted main pushes can save.
+          save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
       - name: Install WiX (for the installer)
         shell: pwsh
         run: |
           dotnet tool install --global wix --version 5.0.2
+          if ($LASTEXITCODE -ne 0) { throw 'WiX installation failed.' }
           wix extension add -g WixToolset.UI.wixext/5.0.2
+          if ($LASTEXITCODE -ne 0) { throw 'WiX UI extension installation failed.' }
           wix extension add -g WixToolset.Util.wixext/5.0.2
-
-      - name: Check the tag matches the version
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: pwsh
-        run: |
-          $v = (Select-String -Path Cargo.toml -Pattern '^version\s*=\s*"([^"]+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
-          if ("v$v" -ne "${{ github.ref_name }}") { throw "Tag ${{ github.ref_name }} doesn't match Cargo.toml version $v" }
+          if ($LASTEXITCODE -ne 0) { throw 'WiX Util extension installation failed.' }
 
       - name: Build ContactSolutions (tests, program, zip, installer)
         shell: pwsh
         run: ./build.ps1
 
+      - name: Record final bytes and producer identity
+        run: python scripts/release_pipeline.py manifest --directory dist
+
       - uses: actions/upload-artifact@v4
         with:
-          name: ContactSolutions-windows
-          path: dist/
-
-      - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
+          name: ContactSolutions-windows-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
             dist/ContactSolutions-windows-x64.msi
             dist/ContactSolutions-windows.zip
-          name: ContactSolutions ${{ github.ref_name }}
-          body_path: packaging/release-notes.md
-          generate_release_notes: true
+            dist/release-manifest.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+  release:
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # windows is skipped on tags. The script requires a successful main push.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify and promote immutable main artifacts
+        run: python scripts/release_pipeline.py promote --sha "$GITHUB_SHA" --tag "$RELEASE_TAG" --directory promoted
+
+      - name: Publish new release (never replace existing assets)
+        run: >-
+          gh release create "$RELEASE_TAG"
+          promoted/ContactSolutions-windows-x64.msi
+          promoted/ContactSolutions-windows.zip
+          --repo "$GITHUB_REPOSITORY" --verify-tag
+          --title "ContactSolutions $RELEASE_TAG"
+          --notes-file packaging/release-notes.md --generate-notes
+
+      - name: Verify published asset bytes
+        run: python scripts/release_pipeline.py verify-published --tag "$RELEASE_TAG" --directory promoted

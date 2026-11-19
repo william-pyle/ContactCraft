@@ -13,11 +13,11 @@ if (-not (Test-Path (Join-Path $root 'assets\contactsolutions.ico'))) {
 }
 
 Write-Host 'Checking the application and contact store...'
-cargo test --workspace --quiet
+cargo test --workspace --locked --quiet
 if ($LASTEXITCODE -ne 0) { throw 'The workspace tests failed.' }
 
 Write-Host 'Building ContactSolutions...'
-cargo build --release
+cargo build --release --locked
 if ($LASTEXITCODE -ne 0) { throw 'ContactSolutions failed to build.' }
 Copy-Item (Join-Path $root 'target\release\ContactSolutions.exe') $dist -Force
 Copy-Item (Join-Path $root 'NOTICE.md') $dist -Force
