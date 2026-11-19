@@ -115,9 +115,11 @@ new shortcut and resource names. Installing/uninstalling does not migrate user d
 that occurs only when the app is run. Interactive and unattended upgrade testing
 must be done in a disposable Windows environment before deployment approval.
 
-Move the existing Git checkout to `C:/Projects/ContactSolutions` only from an
-external directory after the coordinating terminal handoff. Never move a terminal's
-live cwd or create a replacement repository. Update Workspace path facts after the
-move; keep the same Card ID/routes. Rename the existing GitHub repository LAST,
-then update origin and verify its repository ID/history/tags/releases. Do not
-publish a release or reuse the old GitHub repository name as part of this cutover.
+The owner selected `C:/Projects/ContactSolutions` as the authoritative checkout
+after verifying matching commits, trees and tags in both directories. Retain the
+old `C:/Projects/ContactCraft` directory untouched; this explicit decision supersedes
+the earlier move-only plan. Never move a terminal's live cwd or close its session.
+Workspace facts point to the selected checkout while keeping the same Card ID/routes.
+Rename the existing GitHub repository LAST, then update the selected checkout's
+origin and verify repository identity/history/tags/releases. Do not publish a release,
+modify the retained checkout or reuse the old GitHub repository name during cutover.
